@@ -2,7 +2,8 @@ package auth0
 
 import (
 	"bytes"
-	"github.com/astaxie/beego/logs"
+	"fmt"
+	"net/http"
 	"time"
 )
 
@@ -46,7 +47,6 @@ func (a0Api *auth0Api) getToken() (*tokenResponse, error) {
 	// Build url.
 	urlBuilder := bytes.NewBufferString(a0Api.domain)
 	urlBuilder.WriteString("oauth/token")
-	logs.Debug(urlBuilder.String())
 
 	// Response DTO.
 	response := &tokenResponse{}
@@ -56,9 +56,9 @@ func (a0Api *auth0Api) getToken() (*tokenResponse, error) {
 	headers["content-type"] = "application/json"
 
 	// Send request.
-	err := post(urlBuilder.String(), headers, client(a0Api._client, a0Api.connectTimeout, a0Api.readWriteTimeout), request, response)
+	err := do(http.MethodPost, urlBuilder.String(), headers, request, response)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("It was not possible fetch token. ", err.Error())
 	}
 
 	// Return token response.

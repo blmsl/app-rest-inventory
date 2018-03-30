@@ -3,20 +3,15 @@ package auth0
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/astaxie/beego/logs"
 	"net/http"
 	"sync"
 	"time"
 )
 
-const (
-	// In case timeout is not configured.
-	DEFAULT_TIMEOUT = 30000
-)
-
 var (
-	clientMutex   = &sync.Mutex{}
+	client        = &http.Client{}
 	requestMutex  = &sync.Mutex{}
 	apiTokenMutex = &sync.Mutex{}
 )
@@ -25,10 +20,18 @@ type auth0Error struct {
 	StatusCode int    `json:"statusCode"`
 	Error      string `json:"error"`
 	Message    string `json:"message"`
+	ErrorCode  string `json:"errorCode"`
 }
 
 type Auth0 interface {
+	// Users.
+	CreateUser(connection, email, username, password, phoneNumber string, userMetadata, appMetadata map[string]interface{}) (*User, error)
+
+	// Groups.
 	CreateGroup(string, string) (*Group, error)
+	NestGroups(string, ...string) error
+	GetNestedGroups(id string) ([]*Group, error)
+	AddGroupMembers(id string, ids ...string) error
 }
 
 type auth0 struct {
@@ -38,20 +41,20 @@ type auth0 struct {
 
 type Auth0Api interface {
 	postAuth0Api(string, interface{}, interface{}) error
+	patchAuth0Api(string, interface{}, interface{}) error
 	getAuth0Api(string, interface{}) error
+	doAuth0Api(string, string, map[string]string, interface{}, interface{}) error
 	updateToken() error
 	getToken() (*tokenResponse, error)
 	tokenExpired() bool
 }
 
 type auth0Api struct {
-	domain           string
-	clientId         string
-	clientSecret     string
-	audience         string
-	url              string
-	connectTimeout   int
-	readWriteTimeout int
+	domain       string
+	clientId     string
+	clientSecret string
+	audience     string
+	url          string
 
 	_accessToken string
 	_takenAt     time.Time
@@ -61,8 +64,8 @@ type auth0Api struct {
 }
 
 type Auth0Builder interface {
-	ManagementApi(string, string, string, string, string, int, int) Auth0Builder
-	AuthorizationExtensionApi(string, string, string, string, string, int, int) Auth0Builder
+	ManagementApi(string, string, string, string, string) Auth0Builder
+	AuthorizationExtensionApi(string, string, string, string, string) Auth0Builder
 	Build() Auth0
 }
 
@@ -75,27 +78,23 @@ func NewAuth0Builder() Auth0Builder {
 	return &auth0Builder{}
 }
 
-func (a0b *auth0Builder) ManagementApi(domain, clientId, clientSecret, audience, url string, connectTimeout, readWriteTimeout int) Auth0Builder {
+func (a0b *auth0Builder) ManagementApi(domain, clientId, clientSecret, audience, url string) Auth0Builder {
 	a0b.managementApi = &auth0Api{
-		domain:           domain,
-		clientId:         clientId,
-		clientSecret:     clientSecret,
-		audience:         audience,
-		url:              url,
-		connectTimeout:   connectTimeout,
-		readWriteTimeout: readWriteTimeout}
+		domain:       domain,
+		clientId:     clientId,
+		clientSecret: clientSecret,
+		audience:     audience,
+		url:          url}
 	return a0b
 }
 
-func (a0b *auth0Builder) AuthorizationExtensionApi(domain, clientId, clientSecret, audience, url string, connectTimeout, readWriteTimeout int) Auth0Builder {
+func (a0b *auth0Builder) AuthorizationExtensionApi(domain, clientId, clientSecret, audience, url string) Auth0Builder {
 	a0b.authorizationExtensionApi = &auth0Api{
-		domain:           domain,
-		clientId:         clientId,
-		clientSecret:     clientSecret,
-		audience:         audience,
-		url:              url,
-		connectTimeout:   connectTimeout,
-		readWriteTimeout: readWriteTimeout}
+		domain:       domain,
+		clientId:     clientId,
+		clientSecret: clientSecret,
+		audience:     audience,
+		url:          url}
 	return a0b
 }
 
@@ -106,40 +105,31 @@ func (a0b *auth0Builder) Build() Auth0 {
 }
 
 func (a0Api *auth0Api) postAuth0Api(path string, request, response interface{}) error {
-	// Build url.
-	urlBuilder := bytes.NewBufferString(a0Api.url)
-	urlBuilder.WriteString(path)
-
-	if a0Api.tokenExpired() {
-		// Verify access token.
-		apiTokenMutex.Lock()
-		if a0Api.tokenExpired() {
-			// Update token.
-			err := a0Api.updateToken()
-			if err != nil {
-				return err
-			}
-		}
-		apiTokenMutex.Unlock()
-	}
-
-	logs.Debug(a0Api._accessToken)
-
 	// Build headers.
 	headers := make(map[string]string)
-	headers["authorization"] = "Bearer " + a0Api._accessToken
 	headers["content-type"] = "application/json"
 
-	return post(urlBuilder.String(), headers, client(a0Api._client, a0Api.connectTimeout, a0Api.readWriteTimeout), request, response)
+	return a0Api.doAuth0Api(http.MethodPost, path, headers, request, response)
+}
+
+func (a0Api *auth0Api) patchAuth0Api(path string, request, response interface{}) error {
+	// Build headers.
+	headers := make(map[string]string)
+	headers["content-type"] = "application/json"
+
+	return a0Api.doAuth0Api(http.MethodPatch, path, headers, request, response)
 }
 
 func (a0Api *auth0Api) getAuth0Api(path string, response interface{}) error {
-	// Build url.
-	urlBuilder := bytes.NewBufferString(a0Api.url)
-	urlBuilder.WriteString(path)
+	// Build headers.
+	headers := make(map[string]string)
 
+	return a0Api.doAuth0Api(http.MethodGet, path, headers, nil, response)
+}
+
+func (a0Api *auth0Api) doAuth0Api(method, path string, headers map[string]string, request, response interface{}) error {
+	// Verify access token.
 	if a0Api.tokenExpired() {
-		// Verify access token.
 		apiTokenMutex.Lock()
 		if a0Api.tokenExpired() {
 			// Update token.
@@ -151,27 +141,50 @@ func (a0Api *auth0Api) getAuth0Api(path string, response interface{}) error {
 		apiTokenMutex.Unlock()
 	}
 
-	// Build headers.
-	headers := make(map[string]string)
-	headers["authorization"] = "Bearer " + a0Api._accessToken
+	// Add authorization header.
+	if headers != nil {
+		headers["authorization"] = "Bearer " + a0Api._accessToken
+	} else {
+		return fmt.Errorf("headers can't be nil. ")
+	}
 
-	return get(urlBuilder.String(), headers, client(a0Api._client, a0Api.connectTimeout, a0Api.readWriteTimeout), response)
+	// Build url.
+	urlBuilder := bytes.NewBufferString(a0Api.url)
+	urlBuilder.WriteString(path)
+
+	return do(method, urlBuilder.String(), headers, request, response)
 }
 
-func post(url string, headers map[string]string, client *http.Client, request, response interface{}) error {
+func do(method, url string, headers map[string]string, request, response interface{}) error {
 	// Go single-threaded so we can deal with the rate limit.
 	requestMutex.Lock()
 	defer requestMutex.Unlock()
 
 	// Build request.
-	b, err := json.Marshal(request)
-	if err != nil {
-		return err
+	var req *http.Request
+	var err error
+	switch method {
+	case http.MethodPost:
+		var b []byte
+		b, err = json.Marshal(request)
+		if err != nil {
+			return fmt.Errorf("It was not possible marshal request. ", err.Error())
+		}
+		req, err = http.NewRequest(http.MethodPost, url, bytes.NewBuffer(b))
+	case http.MethodPatch:
+		var b []byte
+		b, err = json.Marshal(request)
+		if err != nil {
+			return fmt.Errorf("It was not possible marshal request. ", err.Error())
+		}
+		req, err = http.NewRequest(http.MethodPatch, url, bytes.NewBuffer(b))
+	case http.MethodGet:
+		req, err = http.NewRequest(http.MethodGet, url, nil)
+	default:
+		return errors.New("No method was specified.")
 	}
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(b))
 	if err != nil {
-		return err
+		return fmt.Errorf("It was not possible create request. ", err.Error())
 	}
 
 	// Setup headers.
@@ -191,96 +204,30 @@ func post(url string, headers map[string]string, client *http.Client, request, r
 
 	// HTTP connection error.
 	if err != nil {
-		return err
+		return fmt.Errorf("It was not possible send request. ", err.Error())
 	}
 
 	// Verify status.
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
 		var errorResponse auth0Error
-		err = json.NewDecoder(res.Body).Decode(errorResponse)
+		err = json.NewDecoder(res.Body).Decode(&errorResponse)
 		if err != nil {
 			return err
 		}
 		return fmt.Errorf("Code (%d): %s", errorResponse.StatusCode, errorResponse.Message)
 	}
 
-	// Unmarshall.
-	err = json.NewDecoder(res.Body).Decode(response)
-	if err != nil {
-		return err
-	}
-
-	// If everithing ok.
-	return nil
-}
-
-func get(url string, headers map[string]string, client *http.Client, response interface{}) error {
-	// Go single-threaded so we can deal with the rate limit.
-	requestMutex.Lock()
-	defer requestMutex.Unlock()
-
-	// Build request.
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return err
-	}
-
-	// Setup headers.
-	if headers != nil && len(headers) > 0 {
-		for key, value := range headers {
-			req.Header.Set(key, value)
-		}
-	}
-
-	// Send request.
-	res, err := client.Do(req)
-	defer func() {
-		if res != nil && res.Body != nil {
-			res.Body.Close()
-		}
-	}()
-
-	// HTTP connection error.
-	if err != nil {
-		return err
-	}
-
-	// Verify status.
-	if res.StatusCode < 200 || res.StatusCode >= 300 {
-		var errorResponse auth0Error
-		err = json.NewDecoder(res.Body).Decode(errorResponse)
-		if err != nil {
-			return err
-		}
-		return fmt.Errorf("Code (%d): %s", errorResponse.StatusCode, errorResponse.Message)
+	// No content.
+	if res.StatusCode == 204 {
+		return nil
 	}
 
 	// Unmarshall.
 	err = json.NewDecoder(res.Body).Decode(response)
 	if err != nil {
-		return err
+		return fmt.Errorf("It was not possible unmarshal request. ", err.Error())
 	}
 
 	// If everithing ok.
 	return nil
-}
-
-func client(client *http.Client, connectTimeout, readWriteTimeout int) *http.Client {
-	if client == nil {
-		clientMutex.Lock()
-		if client == nil {
-
-			// Client timeout.
-			clientTimeout := DEFAULT_TIMEOUT
-			if readWriteTimeout > 0 {
-				clientTimeout = readWriteTimeout
-			}
-
-			// Set up client.
-			client = &http.Client{Transport: http.DefaultTransport,
-				Timeout: time.Duration(clientTimeout)}
-		}
-		clientMutex.Unlock()
-	}
-	return client
 }

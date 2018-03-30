@@ -11,28 +11,19 @@ var AUTH0 Auth0
 
 func init() {
 
-	timeout, err := beego.AppConfig.Int("auth0::timeout")
-	if err != nil {
-		panic(err)
-	}
-
 	// Create builder.
 	a0Builder := NewAuth0Builder().
 		ManagementApi(
 			beego.AppConfig.String("auth0::domain"),
-			beego.AppConfig.String("auth0::clientid"),
-			beego.AppConfig.String("auth0::clientsecret"),
+			beego.AppConfig.String("auth0::managementapiclientid"),
+			beego.AppConfig.String("auth0::managementapiclientsecret"),
 			beego.AppConfig.String("auth0::managementapiaudience"),
-			beego.AppConfig.String("auth0::managementapiurl"),
-			timeout,
-			timeout).
+			beego.AppConfig.String("auth0::managementapiurl")).
 		AuthorizationExtensionApi(beego.AppConfig.String("auth0::domain"),
-			beego.AppConfig.String("auth0::clientid"),
-			beego.AppConfig.String("auth0::clientsecret"),
+			beego.AppConfig.String("auth0::authorizationextensionapiclientid"),
+			beego.AppConfig.String("auth0::authorizationextensionapiclientsecret"),
 			beego.AppConfig.String("auth0::authorizationextensionapiaudience"),
-			beego.AppConfig.String("auth0::authorizationextensionapiurl"),
-			timeout,
-			timeout)
+			beego.AppConfig.String("auth0::authorizationextensionapiurl"))
 
 	// Build.
 	AUTH0 = a0Builder.Build()
