@@ -38,7 +38,7 @@ func (a0 *auth0) GetNestedGroups(id string) ([]*Group, error) {
 
 	nestedGroups := make([]*Group, 0)
 
-	err := a0.authorizationExtensionApi.getAuth0Api(path, nestedGroups)
+	err := a0.authorizationExtensionApi.getAuth0Api(path, &nestedGroups)
 	if err != nil {
 		return nil, err
 	}

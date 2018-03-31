@@ -34,7 +34,7 @@ func setupLogs() {
 
 	// Show method and line number configuration.
 	// Set to false to improve performance.
-	logs.EnableFuncCallDepth(false)
+	logs.EnableFuncCallDepth(true)
 
 	// Setup logger.
 	logs.SetLogger(logs.AdapterMultiFile, `{"filename":"app-rest-inventory.log", 

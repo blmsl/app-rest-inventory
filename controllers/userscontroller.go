@@ -28,17 +28,17 @@ func (c *UsersController) CreateUser() {
 		c.Abort(err.Error())
 	}
 
+	// Validate app_metadata.
+	customerId := user.AppMetadata["customer_id"].(string)
+	roles := user.AppMetadata["roles"].([]interface{})
+
 	// Create user.
 	a0User, err := auth0.AUTH0.CreateUser(auth0.UsernamePasswordAuthentication, user.Email,
-		user.Username, user.Password, stringutil.Empty, nil, nil)
+		user.Username, user.Password, stringutil.Empty, user.UserMetadata, user.AppMetadata)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
-
-	// Validate app_metadata.
-	customerId := a0User.AppMetadata["customer_id"].(string)
-	roles := a0User.AppMetadata["roles"].([]string)
 
 	// Get nested groups of the customer.
 	nestedGroups, err := auth0.AUTH0.GetNestedGroups(customerId)
@@ -50,7 +50,7 @@ func (c *UsersController) CreateUser() {
 		nGroup := nestedGroups[i]
 
 		for j := range roles {
-			role := roles[j]
+			role := roles[j].(string)
 
 			if strings.Contains(nGroup.Name, role) {
 				// Add user to the group.

@@ -225,7 +225,7 @@ func do(method, url string, headers map[string]string, request, response interfa
 	// Unmarshall.
 	err = json.NewDecoder(res.Body).Decode(response)
 	if err != nil {
-		return fmt.Errorf("It was not possible unmarshal request. ", err.Error())
+		return fmt.Errorf("It was not possible unmarshal response. ", err.Error())
 	}
 
 	// If everithing ok.

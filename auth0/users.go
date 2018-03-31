@@ -57,6 +57,7 @@ func (a0 *auth0) CreateUser(connection, email, username, password, phoneNumber s
 	user := &User{
 		Connection:   connection,
 		Email:        email,
+		Username:     username,
 		Password:     password,
 		PhoneNumber:  phoneNumber,
 		UserMetadata: userMetadata,
