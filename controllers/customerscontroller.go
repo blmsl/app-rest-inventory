@@ -27,15 +27,15 @@ func (c *CustomersController) URLMapping() {
 // @router /customers [post]
 func (c *CustomersController) CreateCustomer() {
 	// Unmarshall request.
-	customerGroup := new(auth0.Group)
-	err := json.Unmarshal(c.Ctx.Input.RequestBody, customerGroup)
+	customer := new(auth0.Group)
+	err := json.Unmarshal(c.Ctx.Input.RequestBody, customer)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
 
 	// Create customer.
-	customerGroup, err = auth0.AUTH0.CreateGroup(customerGroup.Name, customerGroup.Description)
+	customer, err = auth0.AUTH0.CreateGroup(customer.Name, customer.Description)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
@@ -72,9 +72,31 @@ func (c *CustomersController) CreateCustomer() {
 			logs.Error(err.Error())
 			c.Abort(err.Error())
 		}
-	}(customerGroup)
+	}(customer)
 
 	// Serve JSON.
-	c.Data["json"] = customerGroup
+	c.Data["json"] = customer
+	c.ServeJSON()
+}
+
+// @Param	customer_id	path	string	false	"Customer id."
+// @router /customers/:customer_id [get]
+func (c *CustomersController) GetCustomer(customer_id *string) {
+
+	// Validate user ID.
+	if customer_id == nil {
+		err := fmt.Errorf("customer_id can not be empty.")
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
+	customer, err := auth0.AUTH0.GetGroup(*customer_id)
+	if err != nil {
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
+	// Serve JSON.
+	c.Data["json"] = customer
 	c.ServeJSON()
 }

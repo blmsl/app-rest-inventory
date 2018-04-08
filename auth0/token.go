@@ -7,14 +7,14 @@ import (
 	"time"
 )
 
-type tokenRequest struct {
+type TokenRequest struct {
 	GrantType    string `json:"grant_type,omitempty"`
 	ClientId     string `json:"client_id,omitempty"`
 	ClientSecret string `json:"client_secret,omitempty"`
 	Audience     string `json:"audience,omitempty"`
 }
 
-type tokenResponse struct {
+type TokenResponse struct {
 	AccessToken string `json:"access_token,omitempty"`
 	Scope       string `json:"scope,omitempty"`
 	ExpiresIn   int    `json:"expires_in,omitempty"`
@@ -36,9 +36,9 @@ func (a0Api *auth0Api) updateToken() error {
 	return nil
 }
 
-func (a0Api *auth0Api) getToken() (*tokenResponse, error) {
+func (a0Api *auth0Api) getToken() (*TokenResponse, error) {
 	// Build request.
-	request := &tokenRequest{
+	request := &TokenRequest{
 		GrantType:    "client_credentials",
 		ClientId:     a0Api.clientId,
 		ClientSecret: a0Api.clientSecret,
@@ -49,7 +49,7 @@ func (a0Api *auth0Api) getToken() (*tokenResponse, error) {
 	urlBuilder.WriteString("oauth/token")
 
 	// Response DTO.
-	response := &tokenResponse{}
+	response := &TokenResponse{}
 
 	// Build headers.
 	headers := make(map[string]string)

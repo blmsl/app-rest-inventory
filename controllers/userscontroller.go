@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"app-rest-inventory/auth0"
-	"app-rest-inventory/util/stringutil"
 	"encoding/json"
+	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"strings"
@@ -30,11 +30,14 @@ func (c *UsersController) CreateUser() {
 
 	// Validate app_metadata.
 	customerId := user.AppMetadata["customer_id"].(string)
-	roles := user.AppMetadata["roles"].([]interface{})
+	authorization := user.AppMetadata["authorization"].(map[string]interface{})
+	roles := authorization["roles"].([]interface{})
+
+	// Add connection.
+	user.Connection = auth0.UsernamePasswordAuthentication
 
 	// Create user.
-	a0User, err := auth0.AUTH0.CreateUser(auth0.UsernamePasswordAuthentication, user.Email,
-		user.Username, user.Password, stringutil.Empty, user.UserMetadata, user.AppMetadata)
+	a0User, err := auth0.AUTH0.CreateUser(user)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
@@ -64,6 +67,7 @@ func (c *UsersController) CreateUser() {
 	user.UserId = a0User.UserId
 	user.Email = a0User.Email
 	user.Username = a0User.Username
+	user.Nickname = a0User.Username
 	user.Picture = a0User.Picture
 	user.UpdatedAt = a0User.UpdatedAt
 	user.CreatedAt = a0User.CreatedAt
@@ -72,5 +76,115 @@ func (c *UsersController) CreateUser() {
 
 	// Serve JSON.
 	c.Data["json"] = user
+	c.ServeJSON()
+}
+
+// @Param	user_id	path	string	false	"User id."
+// @router /users/:user_id [get]
+func (c *UsersController) GetUser(user_id *string) {
+	// Validate the tenant getting user from the tenant group and not from the
+	// management api.
+
+	// Get customer ID from the cookies.
+	customerID := c.Ctx.GetCookie("customer_id")
+	if len(customerID) == 0 {
+		err := fmt.Errorf("customer_id can not be empty.")
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
+	// Validate user ID.
+	if user_id == nil {
+		err := fmt.Errorf("user_id can not be empty.")
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
+	// Get user.
+	nestedMember, err := auth0.AUTH0.GetNestedGroupMember(customerID, *user_id)
+	if err != nil {
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
+	// Serve JSON
+	c.Data["json"] = nestedMember.User
+	c.ServeJSON()
+
+}
+
+// @router /users [get]
+func (c *UsersController) GetUsers() {
+	// Validate the tenant getting user from the tenant group and not from the
+	// management api.
+
+	// Get customer ID from the cookies.
+	customerID := c.Ctx.GetCookie("customer_id")
+	if len(customerID) == 0 {
+		err := fmt.Errorf("customer_id can not be empty.")
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
+	// Get group members.
+	users, err := auth0.AUTH0.GetNestedGroupMembers(customerID)
+	if err != nil {
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
+	// Serve JSON
+	c.Data["json"] = users
+	c.ServeJSON()
+}
+
+// @Param	user_id	path	string	false	"User id."
+// @router /users/:user_id [delete]
+func (c *UsersController) DeleteUser(user_id *string) {
+	// Validate the tenant getting user from the tenant group and not from the
+	// management api.
+
+	// Get customer ID from the cookies.
+	customerID := c.Ctx.GetCookie("customer_id")
+	if len(customerID) == 0 {
+		err := fmt.Errorf("customer_id can not be empty.")
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
+	// Validate user ID.
+	if user_id == nil {
+		err := fmt.Errorf("user_id can not be empty.")
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
+	// Obtain user groups.
+	userGroups, err := auth0.AUTH0.GetUserGroups(*user_id)
+	if err != nil {
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
+	// Delete user from groups.
+	u_id := *user_id
+	for _, group := range userGroups {
+		err_ := auth0.AUTH0.DeleteGroupMembers(group.Id, u_id)
+		if err_ != nil {
+			logs.Error(err_.Error())
+			c.Abort(err.Error())
+		}
+
+	}
+
+	// Delete user from tenant.
+	err = auth0.AUTH0.DeleteUser(*user_id)
+	if err != nil {
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
+	// Serve JSON
+	c.Data["json"] = ""
 	c.ServeJSON()
 }

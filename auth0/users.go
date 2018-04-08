@@ -1,5 +1,9 @@
 package auth0
 
+import (
+	"fmt"
+)
+
 /*{
     "email": "test@test.com",
     "username": "test",
@@ -22,6 +26,7 @@ type User struct {
 	Connection    string                 `json:"connection,omitempty"`
 	Email         string                 `json:"email,omitempty"`
 	Username      string                 `json:"username,omitempty"`
+	Nickname      string                 `json:"nickname,omitempty"`
 	Password      string                 `json:"password,omitempty"`
 	PhoneNumber   string                 `json:"phone_number,omitempty"`
 	Picture       string                 `json:"picture,omitempty"`
@@ -37,7 +42,7 @@ type User struct {
 
 type Identity struct {
 	Connection string `json:"connection,omitempty"`
-	UserId     string `json:"connection,omitempty"`
+	UserId     string `json:"user_id,omitempty"`
 	Provider   string `json:"provider,omitempty"`
 	IsSocial   bool   `json:"isSocial,omitempty"`
 }
@@ -47,25 +52,22 @@ const (
 	UsernamePasswordAuthentication = "Username-Password-Authentication"
 )
 
-// @param connection The connection the user belongs to.
-// @param email The user's email.
-// @param password The user's password.
-// @param phoneNumber The user's phone number.
-// @param userMatadata
-// @param appMetadata
-func (a0 *auth0) CreateUser(connection, email, username, password, phoneNumber string, userMetadata, appMetadata map[string]interface{}) (*User, error) {
-	user := &User{
-		Connection:   connection,
-		Email:        email,
-		Username:     username,
-		Password:     password,
-		PhoneNumber:  phoneNumber,
-		UserMetadata: userMetadata,
-		AppMetadata:  appMetadata}
-
+// @Param user User.
+func (a0 *auth0) CreateUser(user *User) (*User, error) {
 	err := a0.managementApi.postAuth0Api("users", user, user)
 	if err != nil {
 		return nil, err
 	}
-	return user, nil
+	// Make user copy.
+	u := new(User)
+	*u = *user
+
+	return u, nil
+}
+
+// @Param id User id.
+func (a0 *auth0) DeleteUser(id string) error {
+	path := fmt.Sprintf("users/%s", id)
+
+	return a0.managementApi.deleteAuth0Api(path, nil, nil)
 }

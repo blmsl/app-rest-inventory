@@ -25,13 +25,21 @@ type auth0Error struct {
 
 type Auth0 interface {
 	// Users.
-	CreateUser(connection, email, username, password, phoneNumber string, userMetadata, appMetadata map[string]interface{}) (*User, error)
+	CreateUser(*User) (*User, error)
+	DeleteUser(string) error
 
 	// Groups.
 	CreateGroup(string, string) (*Group, error)
+	GetGroup(string) (*Group, error)
 	NestGroups(string, ...string) error
-	GetNestedGroups(id string) ([]*Group, error)
-	AddGroupMembers(id string, ids ...string) error
+	GetNestedGroups(string) ([]*Group, error)
+	AddGroupMembers(string, ...string) error
+	GetGroupMembers(string) (*Members, error)
+	GetNestedGroupMembers(string) (*NestedMembers, error)
+	GetGroupMember(string, string) (*User, error)
+	GetNestedGroupMember(string, string) (*NestedMember, error)
+	DeleteGroupMembers(string, ...string) error
+	GetUserGroups(string) ([]*Group, error)
 }
 
 type auth0 struct {
@@ -43,9 +51,10 @@ type Auth0Api interface {
 	postAuth0Api(string, interface{}, interface{}) error
 	patchAuth0Api(string, interface{}, interface{}) error
 	getAuth0Api(string, interface{}) error
+	deleteAuth0Api(string, interface{}, interface{}) error
 	doAuth0Api(string, string, map[string]string, interface{}, interface{}) error
 	updateToken() error
-	getToken() (*tokenResponse, error)
+	getToken() (*TokenResponse, error)
 	tokenExpired() bool
 }
 
@@ -59,8 +68,6 @@ type auth0Api struct {
 	_accessToken string
 	_takenAt     time.Time
 	_expiresIn   int
-
-	_client *http.Client
 }
 
 type Auth0Builder interface {
@@ -127,6 +134,14 @@ func (a0Api *auth0Api) getAuth0Api(path string, response interface{}) error {
 	return a0Api.doAuth0Api(http.MethodGet, path, headers, nil, response)
 }
 
+func (a0Api *auth0Api) deleteAuth0Api(path string, request, response interface{}) error {
+	// Build headers.
+	headers := make(map[string]string)
+	headers["content-type"] = "application/json"
+
+	return a0Api.doAuth0Api(http.MethodDelete, path, headers, request, response)
+}
+
 func (a0Api *auth0Api) doAuth0Api(method, path string, headers map[string]string, request, response interface{}) error {
 	// Verify access token.
 	if a0Api.tokenExpired() {
@@ -180,6 +195,17 @@ func do(method, url string, headers map[string]string, request, response interfa
 		req, err = http.NewRequest(http.MethodPatch, url, bytes.NewBuffer(b))
 	case http.MethodGet:
 		req, err = http.NewRequest(http.MethodGet, url, nil)
+	case http.MethodDelete:
+		if request != nil {
+			var b []byte
+			b, err = json.Marshal(request)
+			if err != nil {
+				return fmt.Errorf("It was not possible marshal request. ", err.Error())
+			}
+			req, err = http.NewRequest(http.MethodDelete, url, bytes.NewBuffer(b))
+		} else {
+			req, err = http.NewRequest(http.MethodDelete, url, nil)
+		}
 	default:
 		return errors.New("No method was specified.")
 	}
