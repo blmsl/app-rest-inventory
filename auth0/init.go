@@ -7,7 +7,7 @@ import (
 // This is how the wrapper must be used. In case you want to uncouple the wrapper
 // you need to put this file in the main project side.
 
-var AUTH0 Auth0
+var Auth Auth0
 
 func init() {
 
@@ -26,5 +26,5 @@ func init() {
 			beego.AppConfig.String("auth0::authorizationextensionapiurl"))
 
 	// Build.
-	AUTH0 = a0Builder.Build()
+	Auth = a0Builder.Build()
 }

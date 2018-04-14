@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"app-rest-inventory/auth0"
+	"app-rest-inventory/models"
 	"app-rest-inventory/util/stringutil"
 	"bytes"
 	"encoding/json"
@@ -15,16 +16,20 @@ const (
 	Seller = "seller"
 )
 
-// Customer API
+// Customers API
 type CustomersController struct {
 	beego.Controller
 }
 
 func (c *CustomersController) URLMapping() {
 	c.Mapping("CreateCustomer", c.CreateCustomer)
+	c.Mapping("GetCustomer", c.GetCustomer)
 }
 
-// @router /customers [post]
+// @Title CreateCustomer
+// @Description Create customer.
+// @Accept json
+// @router / [post]
 func (c *CustomersController) CreateCustomer() {
 	// Unmarshall request.
 	customer := new(auth0.Group)
@@ -35,11 +40,16 @@ func (c *CustomersController) CreateCustomer() {
 	}
 
 	// Create customer.
-	customer, err = auth0.AUTH0.CreateGroup(customer.Name, customer.Description)
+	customer, err = auth0.Auth.CreateGroup(customer.Name, customer.Description)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
+
+	// Create the customer DB.
+	go func(customerID string) {
+		_ = models.CreateCustomerDB(customerID)
+	}(customer.Id)
 
 	go func(customerGroup *auth0.Group) {
 		// Create nested groups.
@@ -48,7 +58,7 @@ func (c *CustomersController) CreateCustomer() {
 		nameBuilder.WriteString(stringutil.HyphenMinus)
 		nameBuilder.WriteString(Admin)
 		var adminGroup *auth0.Group
-		adminGroup, err = auth0.AUTH0.CreateGroup(nameBuilder.String(), fmt.Sprintf("%s admins group.", customerGroup.Name))
+		adminGroup, err = auth0.Auth.CreateGroup(nameBuilder.String(), fmt.Sprintf("%s admins group.", customerGroup.Name))
 		if err != nil {
 			logs.Error(err.Error())
 			c.Abort(err.Error())
@@ -60,14 +70,14 @@ func (c *CustomersController) CreateCustomer() {
 		nameBuilder.WriteString(stringutil.HyphenMinus)
 		nameBuilder.WriteString(Seller)
 		var sellerGroup *auth0.Group
-		sellerGroup, err = auth0.AUTH0.CreateGroup(nameBuilder.String(), fmt.Sprintf("%s sellers group.", customerGroup.Name))
+		sellerGroup, err = auth0.Auth.CreateGroup(nameBuilder.String(), fmt.Sprintf("%s sellers group.", customerGroup.Name))
 		if err != nil {
 			logs.Error(err.Error())
 			c.Abort(err.Error())
 		}
 
 		// Nest groups.
-		err = auth0.AUTH0.NestGroups(customerGroup.Id, adminGroup.Id, sellerGroup.Id)
+		err = auth0.Auth.NestGroups(customerGroup.Id, adminGroup.Id, sellerGroup.Id)
 		if err != nil {
 			logs.Error(err.Error())
 			c.Abort(err.Error())
@@ -79,18 +89,20 @@ func (c *CustomersController) CreateCustomer() {
 	c.ServeJSON()
 }
 
-// @Param	customer_id	path	string	false	"Customer id."
-// @router /customers/:customer_id [get]
-func (c *CustomersController) GetCustomer(customer_id *string) {
+// @Title GetCustomer
+// @Description Get customer.
+// @router / [get]
+func (c *CustomersController) GetCustomer() {
 
-	// Validate user ID.
-	if customer_id == nil {
+	// Get customer ID from the cookies.
+	customerID := c.Ctx.GetCookie("customer_id")
+	if len(customerID) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
 
-	customer, err := auth0.AUTH0.GetGroup(*customer_id)
+	customer, err := auth0.Auth.GetGroup(customerID)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())

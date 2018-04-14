@@ -65,6 +65,22 @@ func (a0 *auth0) CreateUser(user *User) (*User, error) {
 	return u, nil
 }
 
+// @Param id User ID.
+// @Param user User data.
+func (a0 *auth0) UpdateUser(id string, user *User) (*User, error) {
+	path := fmt.Sprintf("users/%s", id)
+
+	err := a0.managementApi.patchAuth0Api(path, user, user)
+	if err != nil {
+		return nil, err
+	}
+	// Make user copy.
+	u := new(User)
+	*u = *user
+
+	return u, nil
+}
+
 // @Param id User id.
 func (a0 *auth0) DeleteUser(id string) error {
 	path := fmt.Sprintf("users/%s", id)

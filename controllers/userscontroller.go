@@ -9,16 +9,20 @@ import (
 	"strings"
 )
 
-// User API
+// Users API
 type UsersController struct {
 	beego.Controller
 }
 
 func (c *UsersController) URLMapping() {
-	c.Mapping("CreateCustomer", c.CreateUser)
+	c.Mapping("CreateUser", c.CreateUser)
+	c.Mapping("GetUsers", c.GetUsers)
 }
 
-// @router /users [post]
+// @Title CreateUser
+// @Description Create user.
+// @Accept json
+// @router / [post]
 func (c *UsersController) CreateUser() {
 	// Unmarshall request.
 	user := new(auth0.User)
@@ -37,50 +41,44 @@ func (c *UsersController) CreateUser() {
 	user.Connection = auth0.UsernamePasswordAuthentication
 
 	// Create user.
-	a0User, err := auth0.AUTH0.CreateUser(user)
+	u, err := auth0.Auth.CreateUser(user)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
 
-	// Get nested groups of the customer.
-	nestedGroups, err := auth0.AUTH0.GetNestedGroups(customerId)
-	if err != nil {
-		logs.Error(err.Error())
-		c.Abort(err.Error())
-	}
-	for i := range nestedGroups {
-		nGroup := nestedGroups[i]
+	// Gorutine to process the user grooups.
+	go func(customerID, userID string) {
 
-		for j := range roles {
-			role := roles[j].(string)
+		// Get nested groups of the customer.
+		nestedGroups, err := auth0.Auth.GetNestedGroups(customerID)
+		if err != nil {
+			logs.Error(err.Error())
+			c.Abort(err.Error())
+		}
+		for i := range nestedGroups {
+			nGroup := nestedGroups[i]
 
-			if strings.Contains(nGroup.Name, role) {
-				// Add user to the group.
-				auth0.AUTH0.AddGroupMembers(nGroup.Id, a0User.UserId)
+			for j := range roles {
+				role := roles[j].(string)
+
+				if strings.Contains(nGroup.Name, role) {
+					// Add user to the group.
+					auth0.Auth.AddGroupMembers(nGroup.Id, userID)
+				}
 			}
 		}
-	}
-
-	// Response.
-	user = new(auth0.User)
-	user.UserId = a0User.UserId
-	user.Email = a0User.Email
-	user.Username = a0User.Username
-	user.Nickname = a0User.Username
-	user.Picture = a0User.Picture
-	user.UpdatedAt = a0User.UpdatedAt
-	user.CreatedAt = a0User.CreatedAt
-	user.UserMetadata = a0User.UserMetadata
-	user.AppMetadata = a0User.AppMetadata
+	}(customerId, u.UserId)
 
 	// Serve JSON.
-	c.Data["json"] = user
+	c.Data["json"] = u
 	c.ServeJSON()
 }
 
-// @Param	user_id	path	string	false	"User id."
-// @router /users/:user_id [get]
+// @Title GetUser
+// @Description Get user.
+// @Param	user_id	path	string	true	"User id."
+// @router /:user_id [get]
 func (c *UsersController) GetUser(user_id *string) {
 	// Validate the tenant getting user from the tenant group and not from the
 	// management api.
@@ -100,20 +98,47 @@ func (c *UsersController) GetUser(user_id *string) {
 		c.Abort(err.Error())
 	}
 
-	// Get user.
-	nestedMember, err := auth0.AUTH0.GetNestedGroupMember(customerID, *user_id)
+	var user *auth0.User
+
+	// Get nested groups of the customer.
+	nestedGroups, err := auth0.Auth.GetNestedGroups(customerID)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
 
+	// Search the user in the groups.
+	for _, group := range nestedGroups {
+
+		// Search in the nested group.
+		user, err := auth0.Auth.GetGroupMember(group.Id, *user_id)
+		if err != nil {
+			logs.Error(err.Error())
+			c.Abort(err.Error())
+		}
+
+		// Validate user.
+		if user != nil {
+			break
+		}
+
+	}
+
+	if user == nil {
+		err := fmt.Errorf("user_id is incorrect or user is not created.")
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
 	// Serve JSON
-	c.Data["json"] = nestedMember.User
+	c.Data["json"] = user
 	c.ServeJSON()
 
 }
 
-// @router /users [get]
+// @Title GetUsers
+// @Description Get users.
+// @router / [get]
 func (c *UsersController) GetUsers() {
 	// Validate the tenant getting user from the tenant group and not from the
 	// management api.
@@ -126,20 +151,76 @@ func (c *UsersController) GetUsers() {
 		c.Abort(err.Error())
 	}
 
-	// Get group members.
-	users, err := auth0.AUTH0.GetNestedGroupMembers(customerID)
+	// Get nested groups of the customer.
+	nestedGroups, err := auth0.Auth.GetNestedGroups(customerID)
+	if err != nil {
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
+	// Members var.
+	members := new(auth0.Members)
+	members.Total = 0
+	members.Users = make([]auth0.User, 0)
+
+	// Build response.
+	for _, group := range nestedGroups {
+
+		// Get nested group members.
+		members_, err := auth0.Auth.GetGroupMembers(group.Id)
+		if err != nil {
+			logs.Error(err.Error())
+			c.Abort(err.Error())
+		}
+
+		// If everithing ok update members.
+		members.Total += members_.Total
+		members.Users = append(members.Users, members_.Users...)
+	}
+
+	// Serve JSON
+	c.Data["json"] = members
+	c.ServeJSON()
+}
+
+// @Title UpdateUser
+// @Description Update user.
+// @Accept json
+// @Param	user_id	path	string	true	"User id."
+// @router /:user_id [patch]
+func (c *UsersController) UpdateUser(user_id *string) {
+	// Unmarshall request.
+	user := new(auth0.User)
+	err := json.Unmarshal(c.Ctx.Input.RequestBody, user)
+	if err != nil {
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
+	// Validate user ID.
+	if user_id == nil {
+		err := fmt.Errorf("user_id can not be empty.")
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
+	user, err = auth0.Auth.UpdateUser(*user_id, user)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
 
 	// Serve JSON
-	c.Data["json"] = users
+	c.Data["json"] = user
 	c.ServeJSON()
+
 }
 
-// @Param	user_id	path	string	false	"User id."
-// @router /users/:user_id [delete]
+// @Title DeleteUser
+// @Description Delete user.
+// @Accept json
+// @Param	user_id	path	string	true	"User id."
+// @router /:user_id [delete]
 func (c *UsersController) DeleteUser(user_id *string) {
 	// Validate the tenant getting user from the tenant group and not from the
 	// management api.
@@ -160,7 +241,7 @@ func (c *UsersController) DeleteUser(user_id *string) {
 	}
 
 	// Obtain user groups.
-	userGroups, err := auth0.AUTH0.GetUserGroups(*user_id)
+	userGroups, err := auth0.Auth.GetUserGroups(*user_id)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
@@ -169,7 +250,7 @@ func (c *UsersController) DeleteUser(user_id *string) {
 	// Delete user from groups.
 	u_id := *user_id
 	for _, group := range userGroups {
-		err_ := auth0.AUTH0.DeleteGroupMembers(group.Id, u_id)
+		err_ := auth0.Auth.DeleteGroupMembers(group.Id, u_id)
 		if err_ != nil {
 			logs.Error(err_.Error())
 			c.Abort(err.Error())
@@ -178,13 +259,9 @@ func (c *UsersController) DeleteUser(user_id *string) {
 	}
 
 	// Delete user from tenant.
-	err = auth0.AUTH0.DeleteUser(*user_id)
+	err = auth0.Auth.DeleteUser(*user_id)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
-
-	// Serve JSON
-	c.Data["json"] = ""
-	c.ServeJSON()
 }

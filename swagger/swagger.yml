@@ -1,0 +1,493 @@
+swagger: "2.0"
+info:
+  title: GoStock API.
+  description: GoStock backend API.
+  version: 1.0.0
+  contact:
+    email: alobaton@gmail.com
+  license: {}
+basePath: /v1
+paths:
+  /caterings/:
+    get:
+      tags:
+      - caterings
+      description: Get caterings.
+      operationId: CateringsController.GetCaterings
+      parameters:
+      - in: query
+        name: from
+        description: From date
+        schema:
+          $ref: '#/definitions/.Time'
+      - in: query
+        name: to
+        description: To date
+        schema:
+          $ref: '#/definitions/.Time'
+    post:
+      tags:
+      - caterings
+      description: Create catering.
+      operationId: CateringsController.CreateCatering
+      consumes:
+      - application/json
+      produces:
+      - application/json
+  /caterings/{catering_id}:
+    get:
+      tags:
+      - caterings
+      description: Get catering.
+      operationId: CateringsController.GetCatering
+      parameters:
+      - in: path
+        name: catering_id
+        description: Catering id.
+        required: true
+        type: integer
+        format: int64
+    patch:
+      tags:
+      - caterings
+      description: Update catering.
+      operationId: CateringsController.UpdateCatering
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: catering_id
+        description: Catering id.
+        required: true
+        type: integer
+        format: int64
+  /customers/:
+    get:
+      tags:
+      - customers
+      description: Get customer.
+      operationId: CustomersController.GetCustomer
+    post:
+      tags:
+      - customers
+      description: Create customer.
+      operationId: CustomersController.CreateCustomer
+      consumes:
+      - application/json
+      produces:
+      - application/json
+  /headquarters/:
+    get:
+      tags:
+      - headquarters
+      description: Get headquarters.
+      operationId: HeadquartersController.GetHeadquarters
+    post:
+      tags:
+      - headquarters
+      description: Create headquarter.
+      operationId: HeadquartersController.CreateHeadquarter
+      consumes:
+      - application/json
+      produces:
+      - application/json
+  /headquarters/{headquarter_id}:
+    get:
+      tags:
+      - headquarters
+      description: Get headquarter.
+      operationId: HeadquartersController.GetHeadquarter
+      parameters:
+      - in: path
+        name: headquarter_id
+        description: Headquarter id.
+        required: true
+        type: integer
+        format: int64
+    delete:
+      tags:
+      - headquarters
+      description: Delete headquarter.
+      operationId: HeadquartersController.DeleteHeadquarter
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: headquarter_id
+        description: Headquarter id.
+        required: true
+        type: integer
+        format: int64
+    patch:
+      tags:
+      - headquarters
+      description: Update headquarter.
+      operationId: HeadquartersController.UpdateHeadquarter
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: headquarter_id
+        description: Headquarter id.
+        required: true
+        type: integer
+        format: int64
+  /products/:
+    get:
+      tags:
+      - products
+      description: Get products.
+      operationId: ProductsController.GetProducts
+      parameters:
+      - in: query
+        name: name
+        description: Product name.
+        type: string
+      - in: query
+        name: brand
+        description: Product brand.
+        type: string
+      - in: query
+        name: color
+        description: Product color.
+        type: string
+    post:
+      tags:
+      - products
+      description: Create product.
+      operationId: ProductsController.CreateProduct
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Product'
+        "403":
+          description: :product_id is empty
+  /products/{catering_id}:
+    delete:
+      tags:
+      - products
+      description: Delete catering.
+      operationId: ProductsController.DeleteCatering
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: catering_id
+        description: Catering id.
+        required: true
+        type: integer
+        format: int64
+  /products/{product_id}:
+    get:
+      tags:
+      - products
+      description: Get product.
+      operationId: ProductsController.GetProduct
+      parameters:
+      - in: path
+        name: product_id
+        description: Product id.
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Product'
+        "403":
+          description: :product_id is empty
+    delete:
+      tags:
+      - products
+      description: Delete product.
+      operationId: ProductsController.DeleteProduct
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: product_id
+        description: Product id.
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "403":
+          description: :product_id is empty
+    patch:
+      tags:
+      - products
+      description: Update product.
+      operationId: ProductsController.UpdateProduct
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: product_id
+        description: Product id.
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Product'
+        "403":
+          description: :product_id is empty
+  /products/{sale_id}:
+    delete:
+      tags:
+      - products
+      description: Delete sale.
+      operationId: ProductsController.DeleteSale
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: sale_id
+        description: Sale id.
+        required: true
+        type: integer
+        format: int64
+  /providers/:
+    get:
+      tags:
+      - providers
+      description: Get providers.
+      operationId: ProvidersController.GetProviders
+    post:
+      tags:
+      - providers
+      description: Create provider.
+      operationId: ProvidersController.CreateProvider
+      consumes:
+      - application/json
+      produces:
+      - application/json
+  /providers/{provider_id}:
+    get:
+      tags:
+      - providers
+      description: Get provider.
+      operationId: ProvidersController.GetProvider
+      parameters:
+      - in: path
+        name: provider_id
+        description: Provider id.
+        required: true
+        type: integer
+        format: int64
+    delete:
+      tags:
+      - providers
+      description: Delete provider.
+      operationId: ProvidersController.DeleteProvider
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: provider_id
+        description: Provider id.
+        required: true
+        type: integer
+        format: int64
+    patch:
+      tags:
+      - providers
+      description: Update provider.
+      operationId: ProvidersController.UpdateProvider
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: provider_id
+        description: Provider id.
+        required: true
+        type: integer
+        format: int64
+  /sales/:
+    get:
+      tags:
+      - sales
+      description: Get sales.
+      operationId: SalesController.GetSales
+      parameters:
+      - in: query
+        name: from
+        description: From date
+        schema:
+          $ref: '#/definitions/.Time'
+      - in: query
+        name: to
+        description: To date
+        schema:
+          $ref: '#/definitions/.Time'
+    post:
+      tags:
+      - sales
+      description: Create sale.
+      operationId: SalesController.CreateSale
+      consumes:
+      - application/json
+      produces:
+      - application/json
+  /sales/{sale_id}:
+    get:
+      tags:
+      - sales
+      description: Get sale.
+      operationId: SalesController.GetSale
+      parameters:
+      - in: path
+        name: sale_id
+        description: Sale id.
+        required: true
+        type: integer
+        format: int64
+    patch:
+      tags:
+      - sales
+      description: Update sale.
+      operationId: SalesController.UpdateSale
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: sale_id
+        description: Sale id.
+        required: true
+        type: integer
+        format: int64
+  /users/:
+    get:
+      tags:
+      - users
+      description: Get users.
+      operationId: UsersController.GetUsers
+    post:
+      tags:
+      - users
+      description: Create user.
+      operationId: UsersController.CreateUser
+      consumes:
+      - application/json
+      produces:
+      - application/json
+  /users/{user_id}:
+    get:
+      tags:
+      - users
+      description: Get user.
+      operationId: UsersController.GetUser
+      parameters:
+      - in: path
+        name: user_id
+        description: User id.
+        required: true
+        type: string
+    delete:
+      tags:
+      - users
+      description: Delete user.
+      operationId: UsersController.DeleteUser
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: user_id
+        description: User id.
+        required: true
+        type: string
+    patch:
+      tags:
+      - users
+      description: Update user.
+      operationId: UsersController.UpdateUser
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: user_id
+        description: User id.
+        required: true
+        type: string
+definitions:
+  .Time:
+    type: object
+  models.Product:
+    title: Product
+    type: object
+    properties:
+      Amount:
+        type: integer
+        format: int64
+      Brand:
+        type: string
+      Color:
+        type: string
+      Created:
+        type: string
+        format: string
+      Id:
+        type: integer
+        format: int64
+      Name:
+        type: string
+      Price:
+        type: number
+        format: double
+      Updated:
+        type: string
+        format: string
+tags:
+- name: customers
+  description: |
+    Customers API
+- name: users
+  description: |
+    Users API
+- name: headquarters
+  description: |
+    Headquarters API
+- name: sales
+  description: |
+    Sales API
+- name: products
+  description: |
+    Products API
+- name: caterings
+  description: |
+    Caterings API
+- name: providers
+  description: |
+    Providers API

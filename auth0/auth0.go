@@ -26,6 +26,7 @@ type auth0Error struct {
 type Auth0 interface {
 	// Users.
 	CreateUser(*User) (*User, error)
+	UpdateUser(string, *User) (*User, error)
 	DeleteUser(string) error
 
 	// Groups.

@@ -15,8 +15,9 @@ func main() {
 	// Setup CORS.
 	setupCORS()
 
-	// Needed for static routes.
-	beego.SetStaticPath("/public", "/home/ubuntu/workspace/src/app.rest/com.personalcollectionmovies/static")
+	// Setup static routes.
+	beego.BConfig.WebConfig.DirectoryIndex = true
+	beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
 
 	// Setup error handler.
 	setupErrorHandler()
@@ -48,7 +49,7 @@ func setupCORS() {
 	// Allowed methods.
 	beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
 		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"GET", "POST", "DELETE"},
+		AllowMethods:     []string{"GET", "POST", "DELETE", "PATCH"},
 		AllowHeaders:     []string{"Content-Type"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
