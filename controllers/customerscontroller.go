@@ -48,9 +48,10 @@ func (c *CustomersController) CreateCustomer() {
 
 	// Create the customer DB.
 	go func(customerID string) {
-		_ = models.CreateCustomerDB(customerID)
+		_ = models.CreateCustomerSchema(customerID)
 	}(customer.Id)
 
+	// Create customer groups.
 	go func(customerGroup *auth0.Group) {
 		// Create nested groups.
 		// Create admins group.

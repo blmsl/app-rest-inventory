@@ -23,9 +23,9 @@ func (c *ProvidersController) URLMapping() {
 // @Accept json
 // @router / [post]
 func (c *ProvidersController) CreateProvider() {
-	// Get customer ID from the cookies.
-	customerID := c.Ctx.GetCookie("customer_id")
-	if len(customerID) == 0 {
+	// Get customer Id from the cookies.
+	customerId := c.Ctx.GetCookie("customer_id")
+	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
 		c.Abort(err.Error())
@@ -40,7 +40,7 @@ func (c *ProvidersController) CreateProvider() {
 	}
 
 	// Insert provider.
-	err = models.Insert(customerID, provider)
+	err = models.Insert(customerId, provider)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
@@ -56,15 +56,15 @@ func (c *ProvidersController) CreateProvider() {
 // @Param	provider_id	path	uint64	true	"Provider id."
 // @router /:provider_id [get]
 func (c *ProvidersController) GetProvider(provider_id *uint64) {
-	// Get customer ID from the cookies.
-	customerID := c.Ctx.GetCookie("customer_id")
-	if len(customerID) == 0 {
+	// Get customer Id from the cookies.
+	customerId := c.Ctx.GetCookie("customer_id")
+	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
 
-	// Validate provider ID.
+	// Validate provider Id.
 	if provider_id == nil {
 		err := fmt.Errorf("provider_id can not be empty.")
 		logs.Error(err.Error())
@@ -76,7 +76,7 @@ func (c *ProvidersController) GetProvider(provider_id *uint64) {
 	provider.Id = *provider_id
 
 	// Get the provider.
-	err := models.Read(customerID, provider)
+	err := models.Read(customerId, provider)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
@@ -91,16 +91,16 @@ func (c *ProvidersController) GetProvider(provider_id *uint64) {
 // @Description Get providers.
 // @router / [get]
 func (c *ProvidersController) GetProviders() {
-	// Get customer ID from the cookies.
-	customerID := c.Ctx.GetCookie("customer_id")
-	if len(customerID) == 0 {
+	// Get customer Id from the cookies.
+	customerId := c.Ctx.GetCookie("customer_id")
+	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
 
 	providers := make([]*models.Provider, 0)
-	err := models.ReadAll(customerID, providers)
+	err := models.ReadAll(customerId, providers)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
@@ -117,15 +117,15 @@ func (c *ProvidersController) GetProviders() {
 // @Param	provider_id	path	uint64	true	"Provider id."
 // @router /:provider_id [patch]
 func (c *ProvidersController) UpdateProvider(provider_id *uint64) {
-	// Get customer ID from the cookies.
-	customerID := c.Ctx.GetCookie("customer_id")
-	if len(customerID) == 0 {
+	// Get customer Id from the cookies.
+	customerId := c.Ctx.GetCookie("customer_id")
+	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
 
-	// Validate provider ID.
+	// Validate provider Id.
 	if provider_id == nil {
 		err := fmt.Errorf("provider_id can not be empty.")
 		logs.Error(err.Error())
@@ -142,7 +142,7 @@ func (c *ProvidersController) UpdateProvider(provider_id *uint64) {
 	provider.Id = *provider_id
 
 	// Update the provider.
-	err = models.Update(customerID, provider)
+	err = models.Update(customerId, *provider_id, provider)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
@@ -159,15 +159,15 @@ func (c *ProvidersController) UpdateProvider(provider_id *uint64) {
 // @Param	provider_id	path	uint64	true	"Provider id."
 // @router /:provider_id [delete]
 func (c *ProvidersController) DeleteProvider(provider_id *uint64) {
-	// Get customer ID from the cookies.
-	customerID := c.Ctx.GetCookie("customer_id")
-	if len(customerID) == 0 {
+	// Get customer Id from the cookies.
+	customerId := c.Ctx.GetCookie("customer_id")
+	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
 
-	// Validate provider ID.
+	// Validate provider Id.
 	if provider_id == nil {
 		err := fmt.Errorf("provider_id can not be empty.")
 		logs.Error(err.Error())
@@ -179,7 +179,7 @@ func (c *ProvidersController) DeleteProvider(provider_id *uint64) {
 	provider.Id = *provider_id
 
 	// Update the provider.
-	err := models.Delete(customerID, provider)
+	err := models.Delete(customerId, *provider_id, provider)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())

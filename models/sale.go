@@ -1,7 +1,6 @@
 package models
 
 import (
-	"github.com/astaxie/beego/orm"
 	"time"
 )
 
@@ -9,60 +8,122 @@ var (
 	SaleTableName = "sale"
 )
 
+// @Description Sale or bill item.
 type Sale struct {
-	Id          uint64       `orm:"auto"`
-	Headquarter *Headquarter `orm:"rel(fk)"`
-	Products    []*Product   `orm:"rel(m2m)"`
-	UserId      string
-	Created     time.Time `orm:"auto_now_add;type(datetime)"`
-	Discount    float64   `orm:"digits(10);decimals(2)"`
+	Id        uint64    `xorm:"autoincr"`
+	BillId    uint64    `xorm:"index"`
+	ProductId uint64    `xorm:"index"`
+	Amount    uint64    `xorm:"not null"`
+	Created   time.Time `xorm:"created"`
+	Updated   time.Time `xorm:"updated"`
 }
 
 func (s *Sale) TableName() string {
 	return SaleTableName
 }
 
-type SaleDao struct {
-	dao
+// In order to access the product's sales in a bill we need to
+// do a join between bill, sale and product tables in the xorm way.
+type SaleBillProduct struct {
+	Sale    `xorm:"extends"`
+	Bill    `xorm:"extends"`
+	Product `xorm:"extends"`
 }
 
-func NewSaleDao(customerID string) *SaleDao {
+type SaleDao struct {
+	Dao
+}
+
+func NewSaleDao(schema string) *SaleDao {
 	d := new(SaleDao)
-	d.dao.CustomerID = customerID
+	d.Dao = new(dao)
+	d.SetSchema(schema)
 	return d
 }
 
-func (d *SaleDao) FindByDates(start, end time.Time) ([]*Sale, error) {
-	cond := orm.NewCondition().Or("Created__gte", start).Or("Created__lte", end)
+// @Param BillId Bill Id.
+func (d *SaleDao) FindByBill(BillId uint64) ([]*SaleBillProduct, error) {
+	// Get engine.
+	engine := GetEngine(d.GetSchema())
 
-	o := d.dao.getOrm()
-	qs := o.QueryTable(SaleTableName).SetCond(cond)
-
-	sales := make([]*Sale, 0)
-	err := readBy(qs, sales)
+	sales := make([]*SaleBillProduct, 0)
+	err := engine.Table(SaleTableName).Join("INNER", BillTableName, "bill.id = sale.bill_id").Join("INNER", ProductTableName, "product.id = sale.product_id").
+		Where("sale.bill_id = ?", BillId).Asc("sale.id").Find(&sales)
+	if err != nil {
+		return nil, err
+	}
 
 	return sales, err
 }
 
+// @Description Get product sales by dates.
+// @Param productId Product Id.
+// @Param start Start time.
+// @Param end End time.
+func (d *SaleDao) FindByProductAndDates(productId uint64, start, end time.Time) ([]*SaleBillProduct, error) {
+	// Get engine.
+	engine := GetEngine(d.GetSchema())
+
+	// Build Query.
+	sales := make([]*SaleBillProduct, 0)
+	err := engine.Table(SaleTableName).Join("INNER", BillTableName, "bill.id = sale.bill_id").Join("INNER", ProductTableName, "product.id = sale.product_id").
+		Where("sale.product_id = ?", productId).And("sale.created >= ?", start).Or("sale.created <= ?", end).Asc("sale.bill_id").Find(&sales)
+	if err != nil {
+		return nil, err
+	}
+
+	return sales, err
+}
+
+// @Description Get sales by dates.
+// @Param start Start time.
+// @Param end End time.
+func (d *SaleDao) FindByDates(start, end time.Time) ([]*SaleBillProduct, error) {
+	// Get engine.
+	engine := GetEngine(d.GetSchema())
+
+	// Build Query.
+	sales := make([]*SaleBillProduct, 0)
+	err := engine.Table(SaleTableName).Join("INNER", BillTableName, "bill.id = sale.bill_id").Join("INNER", ProductTableName, "product.id = sale.product_id").
+		Where("sale.created >= ?", start).Or("sale.created <= ?", end).Asc("sale.bill_id").Find(&sales)
+	if err != nil {
+		return nil, err
+	}
+
+	return sales, err
+}
+
+// @Description Get revenue by dates.
+// @Param start Start time.
+// @Param end End time.
 func (d *SaleDao) RevenueByDates(start, end time.Time) (float64, error) {
 	var revenue float64
 
+	// Find by dates and then group by bill programatically.
 	sales, err := d.FindByDates(start, end)
 	if err != nil {
 		return revenue, err
 	}
-
-	// Golang is faster than PostgreSQL SGBD so here we calc the revenue.
+	// Group by bill.
+	bills := make(map[uint64][]*SaleBillProduct)
 	for _, sale := range sales {
-		// Add brute value.
-		for _, product := range sale.Products {
-			revenue += product.Price
+		bills[sale.Sale.BillId] = append(bills[sale.Sale.BillId], sale)
+	}
+
+	// Calculate revenue.
+	for _, bSales := range bills {
+		// Calculate bill revenue.
+		var billRevenue float64
+		for _, sale := range bSales {
+			billRevenue += float64(sale.Sale.Amount) * sale.Product.Price
+		}
+		// Apply discount.
+		if len(bSales) > 0 {
+			billRevenue -= bSales[0].Bill.Discount
 		}
 
-		// Add discount.
-		if revenue != 0 && sale.Discount != 0 {
-			revenue -= sale.Discount
-		}
+		// Add bill revenue.
+		revenue += billRevenue
 	}
 
 	return revenue, nil

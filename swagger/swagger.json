@@ -11,6 +11,175 @@
     },
     "basePath": "/v1",
     "paths": {
+        "/bills/": {
+            "get": {
+                "tags": [
+                    "bills"
+                ],
+                "description": "Get bills.",
+                "operationId": "BillsController.GetBills",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "from",
+                        "description": "From date",
+                        "schema": {
+                            "$ref": "#/definitions/.Time"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "to",
+                        "description": "To date",
+                        "schema": {
+                            "$ref": "#/definitions/.Time"
+                        }
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "bills"
+                ],
+                "description": "Create bill.",
+                "operationId": "BillsController.CreateBill",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ]
+            }
+        },
+        "/bills/{bill_id}": {
+            "get": {
+                "tags": [
+                    "bills"
+                ],
+                "description": "Get bill.",
+                "operationId": "BillsController.GetBill",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "bill_id",
+                        "description": "Bill id.",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "bills"
+                ],
+                "description": "Delete bill.",
+                "operationId": "BillsController.DeleteBill",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "bill_id",
+                        "description": "Bill id.",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "bills"
+                ],
+                "description": "Update bill discount.",
+                "operationId": "BillsController.UpdateDiscount",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "bill_id",
+                        "description": "Bill id.",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ]
+            }
+        },
+        "/bills/{bill_id}/sales/{sale_id}": {
+            "delete": {
+                "tags": [
+                    "bills"
+                ],
+                "description": "Remove sale from bill.",
+                "operationId": "BillsController.RemoveSale",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "bill_id",
+                        "description": "Bill id.",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "path",
+                        "name": "sale_id",
+                        "description": "Sale id.",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "bills"
+                ],
+                "description": "Add sale to bill.",
+                "operationId": "BillsController.AddSale",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "bill_id",
+                        "description": "Bill id.",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "path",
+                        "name": "sale_id",
+                        "description": "Sale id.",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ]
+            }
+        },
         "/caterings/": {
             "get": {
                 "tags": [
@@ -202,6 +371,128 @@
                 ]
             }
         },
+        "/headquarters/{headquarter_id}/products": {
+            "get": {
+                "tags": [
+                    "headquarters"
+                ],
+                "description": "Get headquarter product.",
+                "operationId": "HeadquartersController.GetProduct",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "headquarter_id",
+                        "description": "Headquarter id.",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "query",
+                        "name": "name",
+                        "description": "Product name.",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "brand",
+                        "description": "Product brand.",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "color",
+                        "description": "Product color.",
+                        "type": "string"
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "headquarters"
+                ],
+                "description": "Remove products from headquarter.",
+                "operationId": "HeadquartersController.RemoveProducts",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "headquarter_id",
+                        "description": "Headquarter id.",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "headquarters"
+                ],
+                "description": "Add products to headquarter.",
+                "operationId": "HeadquartersController.AddProducts",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "headquarter_id",
+                        "description": "Headquarter id.",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ]
+            }
+        },
+        "/headquarters/{headquarter_id}/products/{product_id}": {
+            "get": {
+                "tags": [
+                    "headquarters"
+                ],
+                "description": "Get headquarter product.",
+                "operationId": "HeadquartersController.GetProduct",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "headquarter_id",
+                        "description": "Headquarter id.",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "path",
+                        "name": "product_id",
+                        "description": "Product id.",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ]
+            }
+        },
         "/products/": {
             "get": {
                 "tags": [
@@ -372,31 +663,6 @@
                 }
             }
         },
-        "/products/{sale_id}": {
-            "delete": {
-                "tags": [
-                    "products"
-                ],
-                "description": "Delete sale.",
-                "operationId": "ProductsController.DeleteSale",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "sale_id",
-                        "description": "Sale id.",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int64"
-                    }
-                ]
-            }
-        },
         "/providers/": {
             "get": {
                 "tags": [
@@ -477,88 +743,6 @@
                         "in": "path",
                         "name": "provider_id",
                         "description": "Provider id.",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int64"
-                    }
-                ]
-            }
-        },
-        "/sales/": {
-            "get": {
-                "tags": [
-                    "sales"
-                ],
-                "description": "Get sales.",
-                "operationId": "SalesController.GetSales",
-                "parameters": [
-                    {
-                        "in": "query",
-                        "name": "from",
-                        "description": "From date",
-                        "schema": {
-                            "$ref": "#/definitions/.Time"
-                        }
-                    },
-                    {
-                        "in": "query",
-                        "name": "to",
-                        "description": "To date",
-                        "schema": {
-                            "$ref": "#/definitions/.Time"
-                        }
-                    }
-                ]
-            },
-            "post": {
-                "tags": [
-                    "sales"
-                ],
-                "description": "Create sale.",
-                "operationId": "SalesController.CreateSale",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ]
-            }
-        },
-        "/sales/{sale_id}": {
-            "get": {
-                "tags": [
-                    "sales"
-                ],
-                "description": "Get sale.",
-                "operationId": "SalesController.GetSale",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "sale_id",
-                        "description": "Sale id.",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int64"
-                    }
-                ]
-            },
-            "patch": {
-                "tags": [
-                    "sales"
-                ],
-                "description": "Update sale.",
-                "operationId": "SalesController.UpdateSale",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "sale_id",
-                        "description": "Sale id.",
                         "required": true,
                         "type": "integer",
                         "format": "int64"
@@ -659,10 +843,6 @@
             "title": "Product",
             "type": "object",
             "properties": {
-                "Amount": {
-                    "type": "integer",
-                    "format": "int64"
-                },
                 "Brand": {
                     "type": "string"
                 },
@@ -705,8 +885,8 @@
             "description": "Headquarters API\n"
         },
         {
-            "name": "sales",
-            "description": "Sales API\n"
+            "name": "bills",
+            "description": "Bills API\n"
         },
         {
             "name": "products",

@@ -1,7 +1,6 @@
 package models
 
 import (
-	"github.com/astaxie/beego/orm"
 	"time"
 )
 
@@ -10,50 +9,47 @@ var (
 )
 
 type Catering struct {
-	Id       uint64    `orm:"auto"`
-	Product  *Product  `orm:"rel(fk)"`
-	Provider *Provider `orm:"rel(fk)"`
-	Created  time.Time `orm:"auto_now_add;type(datetime)"`
+	Id         uint64    `xorm:"autoincr"`
+	ProductId  uint64    `xorm:"index"`
+	ProviderId uint64    `xorm:"index"`
+	Amount     uint64    `xorm:"not null"`
+	Created    time.Time `xorm:"created"`
+	Updated    time.Time `xorm:"updated"`
 }
 
 func (c *Catering) TableName() string {
 	return CateringTableName
 }
 
-type CateringDao struct {
-	dao
+// In order to access the product's price in a catering we need to
+// do a join between catering, provider and product tables in the xorm way.
+type CateringProviderProduct struct {
+	Catering `xorm:"extends"`
+	Provider `xorm:"extends"`
+	Product  `xorm:"extends"`
 }
 
-func NewCateringDao(customerID string) *CateringDao {
+type CateringDao struct {
+	Dao
+}
+
+func NewCateringDao(schema string) *CateringDao {
 	d := new(CateringDao)
-	d.dao.CustomerID = customerID
+	d.Dao = new(dao)
+	d.SetSchema(schema)
 	return d
 }
 
-func (d *CateringDao) FindByDates(start, end time.Time) ([]*Catering, error) {
-	cond := orm.NewCondition().Or("Created__gte", start).Or("Created__lte", end)
+// @Param start Start time.
+// @Param end End time.
+func (d *CateringDao) FindByDates(start, end time.Time) ([]*CateringProviderProduct, error) {
+	// Get engine.
+	engine := GetEngine(d.GetSchema())
 
-	o := d.dao.getOrm()
-	qs := o.QueryTable(CateringTableName).SetCond(cond)
-
-	caterings := make([]*Catering, 0)
-	err := readBy(qs, caterings)
+	// Build Query.
+	caterings := make([]*CateringProviderProduct, 0)
+	err := engine.Table(CateringTableName).Join("INNER", ProductTableName, "product.id = catering.product_id").Join("INNER", ProviderTableName, "provider.id = catering.provider_id").
+		Where("catering.created >= ?", start).Or("catering.created <= ?", end).Find(&caterings)
 
 	return caterings, err
-}
-
-func (d *CateringDao) StockValueByDates(start, end time.Time) (float64, error) {
-	var value float64
-
-	caterings, err := d.FindByDates(start, end)
-	if err != nil {
-		return value, err
-	}
-
-	// Golang is faster than PostgreSQL SGBD so here we calc the stock value by dates.
-	for _, catering := range caterings {
-		value += catering.Product.Price
-	}
-
-	return value, nil
 }

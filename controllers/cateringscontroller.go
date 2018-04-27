@@ -23,9 +23,9 @@ func (c *CateringsController) URLMapping() {
 // @Accept json
 // @router / [post]
 func (c *CateringsController) CreateCatering() {
-	// Get customer ID from the cookies.
-	customerID := c.Ctx.GetCookie("customer_id")
-	if len(customerID) == 0 {
+	// Get customer Id from the cookies.
+	customerId := c.Ctx.GetCookie("customer_id")
+	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
 		c.Abort(err.Error())
@@ -40,7 +40,7 @@ func (c *CateringsController) CreateCatering() {
 	}
 
 	// Insert catering.
-	err = models.Insert(customerID, catering)
+	err = models.Insert(customerId, catering)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
@@ -56,15 +56,15 @@ func (c *CateringsController) CreateCatering() {
 // @Param	catering_id	path	uint64	true	"Catering id."
 // @router /:catering_id [get]
 func (c *CateringsController) GetCatering(catering_id *uint64) {
-	// Get customer ID from the cookies.
-	customerID := c.Ctx.GetCookie("customer_id")
-	if len(customerID) == 0 {
+	// Get customer Id from the cookies.
+	customerId := c.Ctx.GetCookie("customer_id")
+	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
 
-	// Validate catering ID.
+	// Validate catering Id.
 	if catering_id == nil {
 		err := fmt.Errorf("catering_id can not be empty.")
 		logs.Error(err.Error())
@@ -76,7 +76,7 @@ func (c *CateringsController) GetCatering(catering_id *uint64) {
 	catering.Id = *catering_id
 
 	// Get the catering.
-	err := models.Read(customerID, catering)
+	err := models.Read(customerId, catering)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
@@ -93,16 +93,16 @@ func (c *CateringsController) GetCatering(catering_id *uint64) {
 // @Param to query time.Time false "To date"
 // @router / [get]
 func (c *CateringsController) GetCaterings(from, to time.Time) {
-	// Get customer ID from the cookies.
-	customerID := c.Ctx.GetCookie("customer_id")
-	if len(customerID) == 0 {
+	// Get customer Id from the cookies.
+	customerId := c.Ctx.GetCookie("customer_id")
+	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
 
 	// Build DAO.
-	dao := models.NewCateringDao(customerID)
+	dao := models.NewCateringDao(customerId)
 
 	// Get caterings.
 	caterings, err := dao.FindByDates(from, to)
@@ -111,13 +111,9 @@ func (c *CateringsController) GetCaterings(from, to time.Time) {
 		c.Abort(err.Error())
 	}
 
-	// Get stock value.
-	value, _ := dao.StockValueByDates(from, to)
-
 	// Serve JSON.
 	response := make(map[string]interface{})
 	response["total"] = len(caterings)
-	response["value"] = value
 	response["caterings"] = caterings
 
 	c.Data["json"] = response
@@ -130,15 +126,15 @@ func (c *CateringsController) GetCaterings(from, to time.Time) {
 // @Param catering_id path uint64 true "Catering id."
 // @router /:catering_id [patch]
 func (c *CateringsController) UpdateCatering(catering_id *uint64) {
-	// Get customer ID from the cookies.
-	customerID := c.Ctx.GetCookie("customer_id")
-	if len(customerID) == 0 {
+	// Get customer Id from the cookies.
+	customerId := c.Ctx.GetCookie("customer_id")
+	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
 
-	// Validate catering ID.
+	// Validate catering Id.
 	if catering_id == nil {
 		err := fmt.Errorf("catering_id can not be empty.")
 		logs.Error(err.Error())
@@ -155,7 +151,7 @@ func (c *CateringsController) UpdateCatering(catering_id *uint64) {
 	catering.Id = *catering_id
 
 	// Update the catering.
-	err = models.Update(customerID, catering)
+	err = models.Update(customerId, *catering_id, catering)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
@@ -172,15 +168,15 @@ func (c *CateringsController) UpdateCatering(catering_id *uint64) {
 // @Param	catering_id	path	uint64	true	"Catering id."
 // @router /:catering_id [delete]
 func (c *ProductsController) DeleteCatering(catering_id *uint64) {
-	// Get customer ID from the cookies.
-	customerID := c.Ctx.GetCookie("customer_id")
-	if len(customerID) == 0 {
+	// Get customer Id from the cookies.
+	customerId := c.Ctx.GetCookie("customer_id")
+	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
 
-	// Validate catering ID.
+	// Validate catering Id.
 	if catering_id == nil {
 		err := fmt.Errorf("catering_id can not be empty.")
 		logs.Error(err.Error())
@@ -192,7 +188,7 @@ func (c *ProductsController) DeleteCatering(catering_id *uint64) {
 	catering.Id = *catering_id
 
 	// Update the catering.
-	err := models.Delete(customerID, catering)
+	err := models.Delete(customerId, *catering_id, catering)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())

@@ -24,9 +24,9 @@ func (c *ProductsController) URLMapping() {
 // @Failure 403 :product_id is empty
 // @router / [post]
 func (c *ProductsController) CreateProduct() {
-	// Get customer ID from the cookies.
-	customerID := c.Ctx.GetCookie("customer_id")
-	if len(customerID) == 0 {
+	// Get customer Id from the cookies.
+	customerId := c.Ctx.GetCookie("customer_id")
+	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
 		c.Abort(err.Error())
@@ -41,7 +41,7 @@ func (c *ProductsController) CreateProduct() {
 	}
 
 	// Insert product.
-	err = models.Insert(customerID, product)
+	err = models.Insert(customerId, product)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
@@ -59,15 +59,15 @@ func (c *ProductsController) CreateProduct() {
 // @Failure 403 :product_id is empty
 // @router /:product_id [get]
 func (c *ProductsController) GetProduct(product_id *uint64) {
-	// Get customer ID from the cookies.
-	customerID := c.Ctx.GetCookie("customer_id")
-	if len(customerID) == 0 {
+	// Get customer Id from the cookies.
+	customerId := c.Ctx.GetCookie("customer_id")
+	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
 
-	// Validate product ID.
+	// Validate product Id.
 	if product_id == nil {
 		err := fmt.Errorf("product_id can not be empty.")
 		logs.Error(err.Error())
@@ -79,7 +79,7 @@ func (c *ProductsController) GetProduct(product_id *uint64) {
 	product.Id = *product_id
 
 	// Get the product.
-	err := models.Read(customerID, product)
+	err := models.Read(customerId, product)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
@@ -97,16 +97,16 @@ func (c *ProductsController) GetProduct(product_id *uint64) {
 // @Param color query string false "Product color."
 // @router / [get]
 func (c *ProductsController) GetProducts(name, brand, color string) {
-	// Get customer ID from the cookies.
-	customerID := c.Ctx.GetCookie("customer_id")
-	if len(customerID) == 0 {
+	// Get customer Id from the cookies.
+	customerId := c.Ctx.GetCookie("customer_id")
+	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
 
 	// Build DAO.
-	dao := models.NewProductDao(customerID)
+	dao := models.NewProductDao(customerId)
 
 	// Get products.
 	products, err := dao.FindByNameOrBrandOrColor(name, brand, color)
@@ -115,13 +115,9 @@ func (c *ProductsController) GetProducts(name, brand, color string) {
 		c.Abort(err.Error())
 	}
 
-	// Get stock value.
-	value, _ := dao.StockValue()
-
 	// Serve JSON.
 	response := make(map[string]interface{})
 	response["total"] = len(products)
-	response["value"] = value
 	response["products"] = products
 
 	c.Data["json"] = response
@@ -136,15 +132,15 @@ func (c *ProductsController) GetProducts(name, brand, color string) {
 // @Failure 403 :product_id is empty
 // @router /:product_id [patch]
 func (c *ProductsController) UpdateProduct(product_id *uint64) {
-	// Get customer ID from the cookies.
-	customerID := c.Ctx.GetCookie("customer_id")
-	if len(customerID) == 0 {
+	// Get customer Id from the cookies.
+	customerId := c.Ctx.GetCookie("customer_id")
+	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
 
-	// Validate product ID.
+	// Validate product Id.
 	if product_id == nil {
 		err := fmt.Errorf("product_id can not be empty.")
 		logs.Error(err.Error())
@@ -161,7 +157,7 @@ func (c *ProductsController) UpdateProduct(product_id *uint64) {
 	product.Id = *product_id
 
 	// Update the product.
-	err = models.Update(customerID, product)
+	err = models.Update(customerId, *product_id, product)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
@@ -179,15 +175,15 @@ func (c *ProductsController) UpdateProduct(product_id *uint64) {
 // @Failure 403 :product_id is empty
 // @router /:product_id [delete]
 func (c *ProductsController) DeleteProduct(product_id *uint64) {
-	// Get customer ID from the cookies.
-	customerID := c.Ctx.GetCookie("customer_id")
-	if len(customerID) == 0 {
+	// Get customer Id from the cookies.
+	customerId := c.Ctx.GetCookie("customer_id")
+	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
 
-	// Validate product ID.
+	// Validate product Id.
 	if product_id == nil {
 		err := fmt.Errorf("product_id can not be empty.")
 		logs.Error(err.Error())
@@ -199,7 +195,7 @@ func (c *ProductsController) DeleteProduct(product_id *uint64) {
 	product.Id = *product_id
 
 	// Update the product.
-	err := models.Delete(customerID, product)
+	err := models.Delete(customerId, *product_id, product)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())

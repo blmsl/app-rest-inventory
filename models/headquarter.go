@@ -4,16 +4,20 @@ import (
 	"time"
 )
 
+var (
+	HeadquarterTableName = "headquarter"
+)
+
 type Headquarter struct {
-	Id         uint64 `orm:"auto"`
-	CustomerId string
-	Name       string    `orm:"unique"`
-	Address    string    `orm:"null;unique"`
-	Phone      string    `orm:"null"`
-	Created    time.Time `orm:"auto_now_add;type(datetime)"`
-	Updated    time.Time `orm:"auto_now;type(datetime)"`
+	Id         uint64 `xorm:"autoincr"`
+	CustomerId string `xorm:"index"`
+	Name       string `xorm:"not null unique"`
+	Address    string
+	Phone      string
+	Created    time.Time `xorm:"created"`
+	Updated    time.Time `xorm:"updated"`
 }
 
 func (h *Headquarter) TableName() string {
-	return "headquarter"
+	return HeadquarterTableName
 }
