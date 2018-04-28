@@ -9,7 +9,7 @@ var (
 )
 
 type Provider struct {
-	Id      uint64 `xorm:"autoincr"`
+	Id      uint64 `xorm:"pk autoincr"`
 	Name    string `xorm:"not null unique"`
 	Address string
 	Phone   string

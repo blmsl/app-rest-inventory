@@ -10,7 +10,7 @@ var (
 
 // @Description Sale or bill item.
 type Sale struct {
-	Id        uint64    `xorm:"autoincr"`
+	Id        uint64    `xorm:"pk autoincr"`
 	BillId    uint64    `xorm:"index"`
 	ProductId uint64    `xorm:"index"`
 	Amount    uint64    `xorm:"not null"`

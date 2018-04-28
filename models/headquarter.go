@@ -9,7 +9,7 @@ var (
 )
 
 type Headquarter struct {
-	Id         uint64 `xorm:"autoincr"`
+	Id         uint64 `xorm:"pk autoincr"`
 	CustomerId string `xorm:"index"`
 	Name       string `xorm:"not null unique"`
 	Address    string

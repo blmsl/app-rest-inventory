@@ -9,7 +9,7 @@ var (
 )
 
 type Bill struct {
-	Id            uint64    `xorm:"autoincr"`
+	Id            uint64    `xorm:"pk autoincr"`
 	HeadquarterId uint64    `xorm:"index"`
 	UserId        string    `xorm:"index"`
 	Discount      float64   `xorm:"not null"`

@@ -9,7 +9,7 @@ var (
 )
 
 type Catering struct {
-	Id         uint64    `xorm:"autoincr"`
+	Id         uint64    `xorm:"pk autoincr"`
 	ProductId  uint64    `xorm:"index"`
 	ProviderId uint64    `xorm:"index"`
 	Amount     uint64    `xorm:"not null"`

@@ -9,7 +9,7 @@ var (
 )
 
 type HeadquarterProduct struct {
-	Id            uint64    `xorm:"autoincr"`
+	Id            uint64    `xorm:"pk autoincr"`
 	HeadquarterId uint64    `xorm:"index"`
 	ProductId     uint64    `xorm:"index"`
 	Amount        uint64    `xorm:"not null"`

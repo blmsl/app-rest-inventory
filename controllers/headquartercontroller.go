@@ -100,14 +100,18 @@ func (c *HeadquartersController) GetHeadquarters() {
 	}
 
 	headquarters := make([]*models.Headquarter, 0)
-	err := models.ReadAll(customerId, headquarters)
+	err := models.ReadAll(customerId, &headquarters)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
 
 	// Serve JSON.
-	c.Data["json"] = headquarters
+	response := make(map[string]interface{})
+	response["total"] = len(headquarters)
+	response["headquarters"] = headquarters
+
+	c.Data["json"] = response
 	c.ServeJSON()
 }
 

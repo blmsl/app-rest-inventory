@@ -9,7 +9,7 @@ var (
 )
 
 type Product struct {
-	Id      uint64 `xorm:"autoincr"`
+	Id      uint64 `xorm:"pk autoincr"`
 	Name    string `xorm:"not null unique"`
 	Brand   string
 	Color   string

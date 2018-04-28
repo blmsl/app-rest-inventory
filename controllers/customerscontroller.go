@@ -48,7 +48,10 @@ func (c *CustomersController) CreateCustomer() {
 
 	// Create the customer DB.
 	go func(customerID string) {
-		_ = models.CreateCustomerSchema(customerID)
+		err = models.CreateCustomerSchema(customerID)
+		if err != nil {
+			logs.Error(err.Error())
+		}
 	}(customer.Id)
 
 	// Create customer groups.

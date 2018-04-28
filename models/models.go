@@ -67,7 +67,8 @@ func CreateCustomerSchema(customerID string) error {
 	}
 
 	// Create the schema.
-	sql := fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s", customerID)
+	sql := fmt.Sprintf(`CREATE SCHEMA IF NOT EXISTS "%s" AUTHORIZATION %s`, customerID, User)
+	/*logs.Debug(sql)*/
 	_, err = engine.Exec(sql)
 	if err != nil {
 		return err
@@ -123,6 +124,12 @@ func GetEngine(customerID string) *xorm.Engine {
 		// Setup max open connections.
 		engine.SetMaxOpenConns(MaxOpenConns)
 
+		// Sync the tables.
+		err = engine.Sync2(new(Bill), new(Catering), new(Headquarter), new(HeadquarterProduct), new(Product), new(Provider), new(Sale))
+		if err != nil {
+			return nil
+		}
+
 		// Add the engine to the pool.
 		pool[customerID] = engine
 	}
@@ -159,17 +166,7 @@ func ReadAll(customerID string, models interface{}) error {
 func Update(customerID string, modelID interface{}, model interface{}) error {
 	engine := GetEngine(customerID)
 
-	exist, err := engine.Exist(model)
-	if err != nil {
-		return err
-	}
-
-	if !exist {
-		err := fmt.Errorf("Register with id %s does not exist.", modelID)
-		return err
-	}
-
-	_, err = engine.ID(modelID).Update(model)
+	_, err := engine.ID(modelID).Update(model)
 	return err
 }
 
@@ -179,17 +176,7 @@ func Update(customerID string, modelID interface{}, model interface{}) error {
 func Delete(customerID string, modelID interface{}, model interface{}) error {
 	engine := GetEngine(customerID)
 
-	exist, err := engine.Exist(model)
-	if err != nil {
-		return err
-	}
-
-	if !exist {
-		err = fmt.Errorf("Register with id %s does not exist.", modelID)
-		return err
-	}
-
-	_, err = engine.ID(modelID).Delete(model)
+	_, err := engine.ID(modelID).Delete(model)
 	return err
 }
 
