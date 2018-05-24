@@ -119,11 +119,10 @@ func CreateCustomerSchema(customerID string) error {
 func GetEngine(customerID string) *xorm.Engine {
 	/** customerID = strings.ToLower(customerID) */
 	// Validate engine.
-	engine, found := pool.Get(customerID)
+	e, found := pool.Get(customerID)
 	if !found {
-		var err error
 		// Create new engine.
-		engine, err = xorm.NewEngine(Driver, Chain)
+		engine, err := xorm.NewEngine(Driver, Chain)
 		if err != nil {
 			logs.Error(err.Error())
 			return nil
@@ -152,7 +151,7 @@ func GetEngine(customerID string) *xorm.Engine {
 		// Add the engine to the pool.
 		pool.Set(customerID, engine, time.Duration(ExpirationTime)*time.Minute)
 	}
-	return engine.(*xorm.Engine)
+	return e.(*xorm.Engine)
 }
 
 // @Param customerID Customer ID
