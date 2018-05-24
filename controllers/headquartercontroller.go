@@ -196,6 +196,7 @@ func (c *HeadquartersController) DeleteHeadquarter(headquarter_id *uint64) {
 // @Param	headquarter_id	path	uint64	true	"Headquarter id."
 // @router /:headquarter_id/products [patch]
 func (c *HeadquartersController) AddProducts(headquarter_id *uint64) {
+	fmt.Println("Se capturo la peticion.")
 	// Get customer Id from the cookies.
 	customerId := c.Ctx.GetCookie("customer_id")
 	if len(customerId) == 0 {
@@ -212,24 +213,24 @@ func (c *HeadquartersController) AddProducts(headquarter_id *uint64) {
 	}
 
 	// Unmarshall request.
-	productsId := make([]uint64, 0)
-	err := json.Unmarshal(c.Ctx.Input.RequestBody, productsId)
+	request := make(map[string]interface{})
+	err := json.Unmarshal(c.Ctx.Input.RequestBody, request)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
+	headquarterProducts := request["products"].([]interface{})
 
-	// Create inserts.
+	// Add products.
 	var errors []error
-	for _, productId := range productsId {
-		headquarterProduct := new(models.HeadquarterProduct)
+	for i := range headquarterProducts {
+		headquarterProduct := headquarterProducts[i].(models.HeadquarterProduct)
 		headquarterProduct.HeadquarterId = *headquarter_id
-		headquarterProduct.ProductId = productId
-		headquarterProduct.Amount = 0
 
 		errors = append(errors, models.Insert(customerId, headquarterProduct))
 	}
 
+	// Validate.
 	if len(errors) > 0 {
 		err := fmt.Errorf("Errors adding products.")
 		logs.Error(err.Error())
@@ -368,7 +369,7 @@ func (c *HeadquartersController) RemoveProducts(headquarter_id *uint64) {
 	// Build dao.
 	dao := models.NewHeadquarterProductDao(customerId)
 
-	// Create inserts.
+	// Delete.
 	var errors []error
 	for _, productId := range productsId {
 

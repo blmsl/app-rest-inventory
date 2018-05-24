@@ -6,6 +6,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/go-xorm/xorm"
 	_ "github.com/lib/pq"
+	"github.com/patrickmn/go-cache"
 	"time"
 )
 
@@ -22,7 +23,9 @@ var (
 
 	// We need to maintain a pool of connection pools configured for each client
 	// and allow specialized resource allocation. pool is a pool of *xorm.Engine.
-	pool map[string]*xorm.Engine
+	ExpirationTime  int
+	CleanupInterval int
+	pool            *cache.Cache
 )
 
 // Init models package.
@@ -54,7 +57,19 @@ func init() {
 	Chain = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s", Host, Port, User, Password, Database)
 
 	// Initialize the pool.
-	pool = make(map[string]*xorm.Engine)
+	val, err = beego.AppConfig.Int("database::expirationtime")
+	if err != nil {
+		logs.Error(err.Error())
+	}
+	ExpirationTime = val
+
+	val, err = beego.AppConfig.Int("database::cleanupinterval")
+	if err != nil {
+		logs.Error(err.Error())
+	}
+	CleanupInterval = val
+
+	pool = cache.New(time.Duration(ExpirationTime)*time.Minute, time.Duration(CleanupInterval)*time.Minute)
 }
 
 // @Param customerID Customer ID.
@@ -88,11 +103,12 @@ func CreateCustomerSchema(customerID string) error {
 	engine.SetMaxOpenConns(MaxOpenConns)
 
 	// Add the engine to the pool.
-	pool[customerID] = engine
+	pool.Set(customerID, engine, time.Duration(ExpirationTime)*time.Minute)
 
 	// Sync the tables.
 	err = engine.Sync2(new(Bill), new(Catering), new(Headquarter), new(HeadquarterProduct), new(Product), new(Provider), new(Sale))
 	if err != nil {
+		logs.Error(err.Error())
 		return err
 	}
 
@@ -103,9 +119,11 @@ func CreateCustomerSchema(customerID string) error {
 func GetEngine(customerID string) *xorm.Engine {
 	/** customerID = strings.ToLower(customerID) */
 	// Validate engine.
-	if pool[customerID] == nil {
+	engine, found := pool.Get(customerID)
+	if !found {
+		var err error
 		// Create new engine.
-		engine, err := xorm.NewEngine(Driver, Chain)
+		engine, err = xorm.NewEngine(Driver, Chain)
 		if err != nil {
 			logs.Error(err.Error())
 			return nil
@@ -127,13 +145,14 @@ func GetEngine(customerID string) *xorm.Engine {
 		// Sync the tables.
 		err = engine.Sync2(new(Bill), new(Catering), new(Headquarter), new(HeadquarterProduct), new(Product), new(Provider), new(Sale))
 		if err != nil {
+			logs.Error(err.Error())
 			return nil
 		}
 
 		// Add the engine to the pool.
-		pool[customerID] = engine
+		pool.Set(customerID, engine, time.Duration(ExpirationTime)*time.Minute)
 	}
-	return pool[customerID]
+	return engine.(*xorm.Engine)
 }
 
 // @Param customerID Customer ID

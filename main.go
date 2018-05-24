@@ -41,8 +41,7 @@ func setupLogs() {
 
 	// Setup logger.
 	logs.SetLogger(logs.AdapterMultiFile, `{"filename":"app-rest-inventory.log", 
-	"daily":true, "maxdays":7, "separate":["emergency", "alert", "critical", "error", 
-	"warning", "notice", "info", "debug"]}`)
+	"daily":true, "maxdays":7, "separate":["error", "info", "debug"]}`)
 }
 
 /** Setup CORS. */
@@ -50,6 +49,7 @@ func setupCORS() {
 	// Allow CORS.
 	// Allowed methods.
 	beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
+		/*AllowAllOrigins:  true,*/
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "DELETE", "PATCH"},
 		AllowHeaders:     []string{"Content-Type"},
