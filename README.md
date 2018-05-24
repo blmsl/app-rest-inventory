@@ -23,5 +23,5 @@ $ bee
 
 ### Running Tests
 ```
-go test -run TestCreateCustomerSchema
+go test -run {TEST_NAME}
 ```
