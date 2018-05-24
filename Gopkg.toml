@@ -51,4 +51,4 @@
 
 [metadata.heroku]
   root-package = "app-rest-inventory"
-  ensure = "false"
+  ensure = "true"
