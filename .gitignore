@@ -1,2 +1,5 @@
 *.log
-conf/app.conf.backup
+conf/*
+tests/*
+app-rest-inventory
+last-update

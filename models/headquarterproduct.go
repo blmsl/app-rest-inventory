@@ -1,6 +1,8 @@
 package models
 
 import (
+	"bytes"
+	"fmt"
 	"time"
 )
 
@@ -48,19 +50,32 @@ func NewHeadquarterProductDao(schema string) *HeadquarterProductDao {
 func (d *HeadquarterProductDao) StockAmount() (uint64, error) {
 	var amount uint64
 
+	// Build sentence.
+	var sql bytes.Buffer
+	sql.WriteString("SELECT * FROM ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(HeadquarterProductTableName)
+	sql.WriteString(" hp INNER JOIN ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(ProductTableName)
+	sql.WriteString(" p ON hp.product_id = p.id")
+
 	// Get engine.
 	engine := GetEngine(d.GetSchema())
+	headquarterProductProducts := make([]*HeadquarterProductProduct, 0)
 
-	headquarterProducts := make([]*HeadquarterProductProduct, 0)
-	err := engine.Table(HeadquarterProductTableName).Join("INNER", ProductTableName, "product.id = headquarter_product.product_id").
-		Find(&headquarterProducts)
+	err := engine.Sql(sql.String()).Find(&headquarterProductProducts)
 	if err != nil {
 		return amount, err
 	}
 
 	// Golang is faster than PostgreSQL SGBD so here we calc the stock amount.
-	for _, headquarterProduct := range headquarterProducts {
-		amount += headquarterProduct.HeadquarterProduct.Amount
+	for _, headquarterProductProduct := range headquarterProductProducts {
+		amount += headquarterProductProduct.HeadquarterProduct.Amount
 	}
 
 	return amount, nil
@@ -71,19 +86,33 @@ func (d *HeadquarterProductDao) StockAmount() (uint64, error) {
 func (d *HeadquarterProductDao) StockAmountByHeadquarter(headquarterId uint64) (uint64, error) {
 	var amount uint64
 
+	// Build sentence.
+	var sql bytes.Buffer
+	sql.WriteString("SELECT * FROM ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(HeadquarterProductTableName)
+	sql.WriteString(" hp INNER JOIN ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(ProductTableName)
+	sql.WriteString(" p ON hp.product_id = p.id WHERE hp.headquarter_id = ")
+	sql.WriteString(fmt.Sprintf("%v", headquarterId))
+
 	// Get engine.
 	engine := GetEngine(d.GetSchema())
+	headquarterProductProducts := make([]*HeadquarterProductProduct, 0)
 
-	headquarterProducts := make([]*HeadquarterProductProduct, 0)
-	err := engine.Table(HeadquarterProductTableName).Join("INNER", ProductTableName, "product.id = headquarter_product.product_id").
-		Where("headquarter_product.headquarter_id = ?", headquarterId).Find(&headquarterProducts)
+	err := engine.Sql(sql.String()).Find(&headquarterProductProducts)
 	if err != nil {
 		return amount, err
 	}
 
 	// Golang is faster than PostgreSQL SGBD so here we calc the stock amount.
-	for _, headquarterProduct := range headquarterProducts {
-		amount += headquarterProduct.HeadquarterProduct.Amount
+	for _, headquarterProductProduct := range headquarterProductProducts {
+		amount += headquarterProductProduct.HeadquarterProduct.Amount
 	}
 
 	return amount, nil
@@ -93,19 +122,33 @@ func (d *HeadquarterProductDao) StockAmountByHeadquarter(headquarterId uint64) (
 func (d *HeadquarterProductDao) StockPrice() (float64, error) {
 	var total float64
 
+	// Build sentence.
+	var sql bytes.Buffer
+	sql.WriteString("SELECT * FROM ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(HeadquarterProductTableName)
+	sql.WriteString(" hp INNER JOIN ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(ProductTableName)
+	sql.WriteString(" p ON hp.product_id = p.id")
+
 	// Get engine.
 	engine := GetEngine(d.GetSchema())
+	headquarterProductProducts := make([]*HeadquarterProductProduct, 0)
 
-	headquarterProducts := make([]*HeadquarterProductProduct, 0)
-	err := engine.Table(HeadquarterProductTableName).Join("INNER", ProductTableName, "product.id = headquarter_product.product_id").
-		Find(&headquarterProducts)
+	// Execute the sentence.
+	err := engine.Sql(sql.String()).Find(&headquarterProductProducts)
 	if err != nil {
 		return total, err
 	}
 
 	// Golang is faster than PostgreSQL SGBD so here we calc the stock amount.
-	for _, headquarterProduct := range headquarterProducts {
-		total += float64(headquarterProduct.HeadquarterProduct.Amount) * headquarterProduct.Product.Price
+	for _, headquarterProductProduct := range headquarterProductProducts {
+		total += float64(headquarterProductProduct.HeadquarterProduct.Amount) * headquarterProductProduct.Product.Price
 	}
 
 	return total, nil
@@ -116,39 +159,29 @@ func (d *HeadquarterProductDao) StockPrice() (float64, error) {
 func (d *HeadquarterProductDao) StockPriceByHeadquarter(headquarterId uint64) (float64, error) {
 	var total float64
 
+	// Build sentence.
+	var sql bytes.Buffer
+	sql.WriteString("SELECT * FROM ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(HeadquarterProductTableName)
+	sql.WriteString(" hp INNER JOIN ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(ProductTableName)
+	sql.WriteString(" p ON hp.product_id = p.id WHERE hp.headquarter_id = ")
+	sql.WriteString(fmt.Sprintf("%v", headquarterId))
+
 	// Get engine.
 	engine := GetEngine(d.GetSchema())
 	headquarterProductProducts := make([]*HeadquarterProductProduct, 0)
 
-	// TODO: Report a bug with JOIN to XORM.
-	// In order to get the product details by headquarter, get the headquarter products and the get each product.
-	// Get head quarters products.
-	headquarterProducts := make([]*HeadquarterProduct, 0)
-	err := engine.Where("headquarter_id = ?", headquarterId).Find(&headquarterProducts)
+	// Execute the sentence.
+	err := engine.Sql(sql.String()).Find(&headquarterProductProducts)
 	if err != nil {
 		return total, err
-	}
-
-	// Get the products and build result.
-	for i := range headquarterProducts {
-		headquarterProductProduct := new(HeadquarterProductProduct)
-
-		// Setup headquarter.
-		headquarterProduct := headquarterProducts[i]
-		headquarterProductProduct.HeadquarterProduct = *headquarterProduct
-
-		// Prepare query.
-		product := new(Product)
-		product.Id = headquarterProduct.ProductId
-		// Get the product.
-		err = Read(d.GetSchema(), product)
-		if err != nil {
-			return total, err
-		}
-		// Setup product.
-		headquarterProductProduct.Product = *product
-
-		headquarterProductProducts = append(headquarterProductProducts, headquarterProductProduct)
 	}
 
 	// Golang is faster than PostgreSQL SGBD so here we calc the stock amount.
@@ -164,38 +197,44 @@ func (d *HeadquarterProductDao) StockPriceByHeadquarter(headquarterId uint64) (f
 // @Param brand Product brand.
 // @Param color Product color.
 func (d *HeadquarterProductDao) FindByHeadquarterOrNameOrBrandOrColor(headquarterId uint64, name, brand, color string) ([]*HeadquarterProductProduct, error) {
+	// Build sentence.
+	var sql bytes.Buffer
+	sql.WriteString("SELECT * FROM ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(HeadquarterProductTableName)
+	sql.WriteString(" hp INNER JOIN ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(ProductTableName)
+	sql.WriteString(" p ON hp.product_id = p.id WHERE hp.headquarter_id = ")
+	sql.WriteString(fmt.Sprintf("%v", headquarterId))
+	if len(name) > 0 {
+		sql.WriteString(" OR p.name = '")
+		sql.WriteString(name)
+		sql.WriteString("'")
+	}
+	if len(brand) > 0 {
+		sql.WriteString(" OR p.brand = '")
+		sql.WriteString(brand)
+		sql.WriteString("'")
+	}
+	if len(color) > 0 {
+		sql.WriteString(" OR p.color = '")
+		sql.WriteString(color)
+		sql.WriteString("'")
+	}
+
 	// Get engine.
 	engine := GetEngine(d.GetSchema())
 	headquarterProductProducts := make([]*HeadquarterProductProduct, 0)
 
-	// TODO: Report a bug with JOIN to XORM.
-	// In order to get the product details by headquarter, get the headquarter products and the get each product.
-	// Get head quarters products.
-	headquarterProducts := make([]*HeadquarterProduct, 0)
-	err := engine.Where("headquarter_id = ?", headquarterId).Find(&headquarterProducts)
+	// Execute sentence.
+	err := engine.Sql(sql.String()).Find(&headquarterProductProducts)
 	if err != nil {
 		return nil, err
-	}
-
-	// Get the products and build result.
-	for i := range headquarterProducts {
-		headquarterProductProduct := new(HeadquarterProductProduct)
-
-		// Setup headquarter.
-		headquarterProduct := headquarterProducts[i]
-		headquarterProductProduct.HeadquarterProduct = *headquarterProduct
-
-		// Prepare query.
-		product := new(Product)
-		product.Id = headquarterProduct.ProductId
-		// Get the product.
-		err = Read(d.GetSchema(), product)
-		if err != nil {
-			return nil, err
-		}
-
-		headquarterProductProducts = append(headquarterProductProducts, headquarterProductProduct)
-
 	}
 
 	return headquarterProductProducts, err
@@ -218,17 +257,39 @@ func (d *HeadquarterProductDao) DeleteByHeadquarterIdAndProductId(headquarterId,
 
 // @Param headquarterId Headquarter Id.
 // @Param productId Product Id.
-func (d *HeadquarterProductDao) Read(headquarterId, ProductId uint64) (*HeadquarterProductProduct, error) {
+func (d *HeadquarterProductDao) Read(headquarterId, productId uint64) (*HeadquarterProductProduct, error) {
+	// Build sentence.
+	var sql bytes.Buffer
+	sql.WriteString("SELECT * FROM ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(HeadquarterProductTableName)
+	sql.WriteString(" hp INNER JOIN ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(ProductTableName)
+	sql.WriteString(" p ON hp.product_id = p.id WHERE hp.headquarter_id = ")
+	sql.WriteString(fmt.Sprintf("%v", headquarterId))
+	sql.WriteString(" AND p.id = ")
+	sql.WriteString(fmt.Sprintf("%v", productId))
+
 	// Get engine.
 	engine := GetEngine(d.GetSchema())
+	headquarterProductProducts := make([]*HeadquarterProductProduct, 0)
 
-	// Build Query.
-	headquarterProduct := new(HeadquarterProductProduct)
-	_, err := engine.Table(HeadquarterProductTableName).Join("INNER", ProductTableName, "product.id = headquarter_product.product_id").
-		Where("headquarter_product.headquarter_id = ?", headquarterId).And("product.id = ?", ProductId).Get(&headquarterProduct)
+	// Execute the sentence.
+	err := engine.Sql(sql.String()).Find(&headquarterProductProducts)
 	if err != nil {
 		return nil, err
 	}
 
-	return headquarterProduct, err
+	length := len(headquarterProductProducts)
+	if length != 1 {
+		err = fmt.Errorf("headquarterProductProducts does not have the appropriate length. Current %d, Expected %d", length, 1)
+		return nil, err
+	}
+
+	return headquarterProductProducts[0], nil
 }
