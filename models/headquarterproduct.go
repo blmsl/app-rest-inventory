@@ -8,6 +8,10 @@ var (
 	HeadquarterProductTableName = "headquarter_product"
 )
 
+type HeadquarterProducts struct {
+	Products []HeadquarterProduct `json:"products"`
+}
+
 type HeadquarterProduct struct {
 	Id            uint64    `xorm:"pk autoincr"`
 	HeadquarterId uint64    `xorm:"index"`
@@ -114,17 +118,42 @@ func (d *HeadquarterProductDao) StockPriceByHeadquarter(headquarterId uint64) (f
 
 	// Get engine.
 	engine := GetEngine(d.GetSchema())
+	headquarterProductProducts := make([]*HeadquarterProductProduct, 0)
 
-	headquarterProducts := make([]*HeadquarterProductProduct, 0)
-	err := engine.Table(HeadquarterProductTableName).Join("INNER", ProductTableName, "product.id = headquarter_product.product_id").
-		Where("headquarter_product.headquarter_id = ?", headquarterId).Find(&headquarterProducts)
+	// TODO: Report a bug with JOIN to XORM.
+	// In order to get the product details by headquarter, get the headquarter products and the get each product.
+	// Get head quarters products.
+	headquarterProducts := make([]*HeadquarterProduct, 0)
+	err := engine.Where("headquarter_id = ?", headquarterId).Find(&headquarterProducts)
 	if err != nil {
 		return total, err
 	}
 
+	// Get the products and build result.
+	for i := range headquarterProducts {
+		headquarterProductProduct := new(HeadquarterProductProduct)
+
+		// Setup headquarter.
+		headquarterProduct := headquarterProducts[i]
+		headquarterProductProduct.HeadquarterProduct = *headquarterProduct
+
+		// Prepare query.
+		product := new(Product)
+		product.Id = headquarterProduct.ProductId
+		// Get the product.
+		err = Read(d.GetSchema(), product)
+		if err != nil {
+			return total, err
+		}
+		// Setup product.
+		headquarterProductProduct.Product = *product
+
+		headquarterProductProducts = append(headquarterProductProducts, headquarterProductProduct)
+	}
+
 	// Golang is faster than PostgreSQL SGBD so here we calc the stock amount.
-	for _, headquarterProduct := range headquarterProducts {
-		total += float64(headquarterProduct.HeadquarterProduct.Amount) * headquarterProduct.Product.Price
+	for _, headquarterProductProduct := range headquarterProductProducts {
+		total += float64(headquarterProductProduct.HeadquarterProduct.Amount) * headquarterProductProduct.Product.Price
 	}
 
 	return total, nil
@@ -137,16 +166,39 @@ func (d *HeadquarterProductDao) StockPriceByHeadquarter(headquarterId uint64) (f
 func (d *HeadquarterProductDao) FindByHeadquarterOrNameOrBrandOrColor(headquarterId uint64, name, brand, color string) ([]*HeadquarterProductProduct, error) {
 	// Get engine.
 	engine := GetEngine(d.GetSchema())
+	headquarterProductProducts := make([]*HeadquarterProductProduct, 0)
 
-	// Build Query.
-	headquarterProducts := make([]*HeadquarterProductProduct, 0)
-	err := engine.Table(HeadquarterProductTableName).Join("INNER", ProductTableName, "product.id = headquarter_product.product_id").
-		Where("headquarter_product.headquarter_id = ?", headquarterId).Or("product.name = ?", name).Or("product.brand = ?", brand).Or("product.color = ?", color).Find(&headquarterProducts)
+	// TODO: Report a bug with JOIN to XORM.
+	// In order to get the product details by headquarter, get the headquarter products and the get each product.
+	// Get head quarters products.
+	headquarterProducts := make([]*HeadquarterProduct, 0)
+	err := engine.Where("headquarter_id = ?", headquarterId).Find(&headquarterProducts)
 	if err != nil {
 		return nil, err
 	}
 
-	return headquarterProducts, err
+	// Get the products and build result.
+	for i := range headquarterProducts {
+		headquarterProductProduct := new(HeadquarterProductProduct)
+
+		// Setup headquarter.
+		headquarterProduct := headquarterProducts[i]
+		headquarterProductProduct.HeadquarterProduct = *headquarterProduct
+
+		// Prepare query.
+		product := new(Product)
+		product.Id = headquarterProduct.ProductId
+		// Get the product.
+		err = Read(d.GetSchema(), product)
+		if err != nil {
+			return nil, err
+		}
+
+		headquarterProductProducts = append(headquarterProductProducts, headquarterProductProduct)
+
+	}
+
+	return headquarterProductProducts, err
 }
 
 // @Param headquarterId Headquarter Id.

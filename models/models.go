@@ -120,38 +120,43 @@ func GetEngine(customerID string) *xorm.Engine {
 	/** customerID = strings.ToLower(customerID) */
 	// Validate engine.
 	e, found := pool.Get(customerID)
-	if !found {
-		// Create new engine.
-		engine, err := xorm.NewEngine(Driver, Chain)
-		if err != nil {
-			logs.Error(err.Error())
-			return nil
-		}
-
-		// Setup the search path to the engine.
-		engine.SetSchema(customerID)
-
-		// Setup cache to perform querys.
-		cacher := xorm.NewLRUCacher(xorm.NewMemoryStore(), MaxCacherSize)
-		engine.SetDefaultCacher(cacher)
-
-		// Setup location.
-		engine.TZLocation = time.Now().Location()
-
-		// Setup max open connections.
-		engine.SetMaxOpenConns(MaxOpenConns)
-
-		// Sync the tables.
-		err = engine.Sync2(new(Bill), new(Catering), new(Headquarter), new(HeadquarterProduct), new(Product), new(Provider), new(Sale))
-		if err != nil {
-			logs.Error(err.Error())
-			return nil
-		}
-
-		// Add the engine to the pool.
-		pool.Set(customerID, engine, time.Duration(ExpirationTime)*time.Minute)
+	if found {
+		return e.(*xorm.Engine)
 	}
-	return e.(*xorm.Engine)
+	// Create new engine.
+	engine, err := xorm.NewEngine(Driver, Chain)
+	if err != nil {
+		logs.Error(err.Error())
+		return nil
+	}
+
+	// Setup the search path to the engine.
+	engine.SetSchema(customerID)
+
+	// Show sql.
+	/*	engine.ShowSQL(true)*/
+
+	// Setup cache to perform querys.
+	cacher := xorm.NewLRUCacher(xorm.NewMemoryStore(), MaxCacherSize)
+	engine.SetDefaultCacher(cacher)
+
+	// Setup location.
+	engine.TZLocation = time.Now().Location()
+
+	// Setup max open connections.
+	engine.SetMaxOpenConns(MaxOpenConns)
+
+	// Sync the tables.
+	err = engine.Sync2(new(Bill), new(Catering), new(Headquarter), new(HeadquarterProduct), new(Product), new(Provider), new(Sale))
+	if err != nil {
+		logs.Error(err.Error())
+		return nil
+	}
+
+	// Add the engine to the pool.
+	pool.Set(customerID, engine, time.Duration(ExpirationTime)*time.Minute)
+
+	return engine
 }
 
 // @Param customerID Customer ID

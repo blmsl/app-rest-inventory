@@ -34,7 +34,6 @@ func (c *ProductsController) CreateProduct() {
 
 	// Unmarshall request.
 	product := new(models.Product)
-	fmt.Println(string(c.Ctx.Input.RequestBody))
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, product)
 	if err != nil {
 		logs.Error(err.Error())
