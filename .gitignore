@@ -2,4 +2,4 @@
 conf/*
 tests/*
 app-rest-inventory
-last-update
+lastupdate.tmp
