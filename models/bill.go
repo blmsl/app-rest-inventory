@@ -9,12 +9,12 @@ var (
 )
 
 type Bill struct {
-	Id            uint64    `xorm:"pk autoincr"`
-	HeadquarterId uint64    `xorm:"index"`
-	UserId        string    `xorm:"index"`
-	Discount      float64   `xorm:"not null"`
-	Created       time.Time `xorm:"created"`
-	Updated       time.Time `xorm:"updated"`
+	Id            uint64    `xorm:"pk autoincr" json:"id"`
+	HeadquarterId uint64    `xorm:"index" json:"headquarter_id"`
+	UserId        string    `xorm:"index" json:"user_id"`
+	Discount      float64   `xorm:"not null" json:"discount"`
+	Created       time.Time `xorm:"created" json:"created"`
+	Updated       time.Time `xorm:"updated" json:"updated"`
 }
 
 func (b *Bill) TableName() string {

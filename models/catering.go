@@ -9,12 +9,12 @@ var (
 )
 
 type Catering struct {
-	Id         uint64    `xorm:"pk autoincr"`
-	ProductId  uint64    `xorm:"index"`
-	ProviderId uint64    `xorm:"index"`
-	Amount     uint64    `xorm:"not null"`
-	Created    time.Time `xorm:"created"`
-	Updated    time.Time `xorm:"updated"`
+	Id         uint64    `xorm:"pk autoincr" json:"id"`
+	ProductId  uint64    `xorm:"index" json:"product_id"`
+	ProviderId uint64    `xorm:"index" json:"provider_id"`
+	Amount     uint64    `xorm:"not null" json:"amount"`
+	Created    time.Time `xorm:"created" json:"created"`
+	Updated    time.Time `xorm:"updated" json:"updated"`
 }
 
 func (c *Catering) TableName() string {

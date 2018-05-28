@@ -10,12 +10,12 @@ var (
 
 // @Description Sale or bill item.
 type Sale struct {
-	Id        uint64    `xorm:"pk autoincr"`
-	BillId    uint64    `xorm:"index"`
-	ProductId uint64    `xorm:"index"`
-	Amount    uint64    `xorm:"not null"`
-	Created   time.Time `xorm:"created"`
-	Updated   time.Time `xorm:"updated"`
+	Id        uint64    `xorm:"pk autoincr" json:"id"`
+	BillId    uint64    `xorm:"index" json:"bill_id"`
+	ProductId uint64    `xorm:"index" json:"product_id"`
+	Amount    uint64    `xorm:"not null" json:"amount"`
+	Created   time.Time `xorm:"created" json:"created"`
+	Updated   time.Time `xorm:"updated" json:"updated"`
 }
 
 func (s *Sale) TableName() string {

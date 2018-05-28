@@ -190,6 +190,49 @@ func (c *HeadquartersController) DeleteHeadquarter(headquarter_id *uint64) {
 	}
 }
 
+// @Title AddProduct
+// @Description Add product to headquarter.
+// @Accept json
+// @Param	headquarter_id	path	uint64	true	"Headquarter id."
+// @router /:headquarter_id/products [post]
+func (c *HeadquartersController) AddProduct(headquarter_id *uint64) {
+	// Get customer Id from the cookies.
+	customerId := c.Ctx.GetCookie("customer_id")
+	if len(customerId) == 0 {
+		err := fmt.Errorf("customer_id can not be empty.")
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
+	// Validate headquarter Id.
+	if headquarter_id == nil {
+		err := fmt.Errorf("headquarter can not be empty.")
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
+	// Unmarshall request.
+	headquarterProduct := new(models.HeadquarterProduct)
+	err := json.Unmarshal(c.Ctx.Input.RequestBody, headquarterProduct)
+	if err != nil {
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
+	// Add product.
+	headquarterProduct.HeadquarterId = *headquarter_id
+
+	err = models.Insert(customerId, headquarterProduct)
+	if err != nil {
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
+	// Serve JSON.
+	c.Data["json"] = headquarterProduct
+	c.ServeJSON()
+}
+
 // @Title AddProducts
 // @Description Add products to headquarter.
 // @Accept json
@@ -316,11 +359,6 @@ func (c *HeadquartersController) GetProducts(headquarter_id *uint64, name, brand
 		c.Abort(err.Error())
 	}
 
-	ps := make([]models.Product, 0)
-	for _, product := range products {
-		ps = append(ps, product.Product)
-	}
-
 	// Get stock price.
 	price, err := dao.StockPriceByHeadquarter(*headquarter_id)
 	if err != nil {
@@ -330,9 +368,9 @@ func (c *HeadquartersController) GetProducts(headquarter_id *uint64, name, brand
 
 	// Serve JSON.
 	response := make(map[string]interface{})
-	response["total"] = len(ps)
+	response["total"] = len(products)
 	response["price"] = price
-	response["products"] = ps
+	response["products"] = products
 
 	c.Data["json"] = response
 	c.ServeJSON()

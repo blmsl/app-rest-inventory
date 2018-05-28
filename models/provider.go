@@ -9,12 +9,12 @@ var (
 )
 
 type Provider struct {
-	Id      uint64 `xorm:"pk autoincr"`
-	Name    string `xorm:"not null unique"`
-	Address string
-	Phone   string
-	Created time.Time `xorm:"created"`
-	Updated time.Time `xorm:"updated"`
+	Id      uint64    `xorm:"pk autoincr" json:"id"`
+	Name    string    `xorm:"not null unique" json:"name"`
+	Address string    `json:"address"`
+	Phone   string    `json:"phone"`
+	Created time.Time `xorm:"created" json:"created"`
+	Updated time.Time `xorm:"updated" json:"updated"`
 }
 
 func (p *Provider) TableName() string {

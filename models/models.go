@@ -134,7 +134,7 @@ func GetEngine(customerID string) *xorm.Engine {
 	engine.SetSchema(customerID)
 
 	// Show sql.
-	/*	engine.ShowSQL(true)*/
+	engine.ShowSQL(true)
 
 	// Setup cache to perform querys.
 	cacher := xorm.NewLRUCacher(xorm.NewMemoryStore(), MaxCacherSize)

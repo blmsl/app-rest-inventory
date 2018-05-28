@@ -15,6 +15,7 @@ type ProductsController struct {
 
 func (c *ProductsController) URLMapping() {
 	c.Mapping("CreateProduct", c.CreateProduct)
+	c.Mapping("GetBrands", c.GetBrands)
 }
 
 // @Title CreateProduct
@@ -200,4 +201,37 @@ func (c *ProductsController) DeleteProduct(product_id *uint64) {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
+}
+
+// @Title GetBrands
+// @Description Get product brands.
+// @Accept json
+// @router /brands [get]
+func (c *ProductsController) GetBrands() {
+	// Get customer Id from the cookies.
+	customerId := c.Ctx.GetCookie("customer_id")
+	if len(customerId) == 0 {
+		err := fmt.Errorf("customer_id can not be empty.")
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
+	// Build DAO.
+	dao := models.NewProductDao(customerId)
+
+	// Get brands.
+	brands, err := dao.GetBrands()
+	if err != nil {
+		logs.Error(err.Error())
+		c.Abort(err.Error())
+	}
+
+	// Serve JSON.
+	response := make(map[string]interface{})
+	response["total"] = len(brands)
+	response["brands"] = brands
+
+	c.Data["json"] = response
+	c.ServeJSON()
+
 }

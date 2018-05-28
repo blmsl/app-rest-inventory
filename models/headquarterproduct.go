@@ -11,16 +11,16 @@ var (
 )
 
 type HeadquarterProducts struct {
-	Products []HeadquarterProduct `json:"products"`
+	Products []*HeadquarterProduct `json:"products"`
 }
 
 type HeadquarterProduct struct {
-	Id            uint64    `xorm:"pk autoincr"`
-	HeadquarterId uint64    `xorm:"index"`
-	ProductId     uint64    `xorm:"index"`
-	Amount        uint64    `xorm:"not null"`
-	Created       time.Time `xorm:"created"`
-	Updated       time.Time `xorm:"updated"`
+	Id            uint64    `xorm:"pk autoincr" json:"id"`
+	HeadquarterId uint64    `xorm:"index" json:"headquarter_id"`
+	ProductId     uint64    `xorm:"index" json:"product_id"`
+	Amount        uint64    `xorm:"not null" json:"amount"`
+	Created       time.Time `xorm:"created" json:"created"`
+	Updated       time.Time `xorm:"updated" json:"updated"`
 }
 
 func (h *HeadquarterProduct) TableName() string {
@@ -98,7 +98,7 @@ func (d *HeadquarterProductDao) StockAmountByHeadquarter(headquarterId uint64) (
 	sql.WriteString(d.GetSchema())
 	sql.WriteString("\".")
 	sql.WriteString(ProductTableName)
-	sql.WriteString(" p ON hp.product_id = p.id WHERE hp.headquarter_id = ")
+	sql.WriteString(" p ON hp.product_id = p.id AND hp.headquarter_id = ")
 	sql.WriteString(fmt.Sprintf("%v", headquarterId))
 
 	// Get engine.
@@ -171,7 +171,7 @@ func (d *HeadquarterProductDao) StockPriceByHeadquarter(headquarterId uint64) (f
 	sql.WriteString(d.GetSchema())
 	sql.WriteString("\".")
 	sql.WriteString(ProductTableName)
-	sql.WriteString(" p ON hp.product_id = p.id WHERE hp.headquarter_id = ")
+	sql.WriteString(" p ON hp.product_id = p.id AND hp.headquarter_id = ")
 	sql.WriteString(fmt.Sprintf("%v", headquarterId))
 
 	// Get engine.
@@ -209,20 +209,29 @@ func (d *HeadquarterProductDao) FindByHeadquarterOrNameOrBrandOrColor(headquarte
 	sql.WriteString(d.GetSchema())
 	sql.WriteString("\".")
 	sql.WriteString(ProductTableName)
-	sql.WriteString(" p ON hp.product_id = p.id WHERE hp.headquarter_id = ")
+	sql.WriteString(" p ON hp.product_id = p.id AND hp.headquarter_id = ")
 	sql.WriteString(fmt.Sprintf("%v", headquarterId))
+	if len(name) > 0 || len(brand) > 0 || len(color) > 0 {
+		sql.WriteString(" WHERE ")
+	}
 	if len(name) > 0 {
-		sql.WriteString(" OR p.name = '")
+		sql.WriteString("p.name = '")
 		sql.WriteString(name)
 		sql.WriteString("'")
 	}
+	if len(name) > 0 && len(brand) > 0 {
+		sql.WriteString(" OR ")
+	}
 	if len(brand) > 0 {
-		sql.WriteString(" OR p.brand = '")
+		sql.WriteString("p.brand = '")
 		sql.WriteString(brand)
 		sql.WriteString("'")
 	}
+	if (len(name) > 0 || len(brand) > 0) && len(color) > 0 {
+		sql.WriteString(" OR ")
+	}
 	if len(color) > 0 {
-		sql.WriteString(" OR p.color = '")
+		sql.WriteString("p.color = '")
 		sql.WriteString(color)
 		sql.WriteString("'")
 	}
@@ -270,7 +279,7 @@ func (d *HeadquarterProductDao) Read(headquarterId, productId uint64) (*Headquar
 	sql.WriteString(d.GetSchema())
 	sql.WriteString("\".")
 	sql.WriteString(ProductTableName)
-	sql.WriteString(" p ON hp.product_id = p.id WHERE hp.headquarter_id = ")
+	sql.WriteString(" p ON hp.product_id = p.id AND hp.headquarter_id = ")
 	sql.WriteString(fmt.Sprintf("%v", headquarterId))
 	sql.WriteString(" AND p.id = ")
 	sql.WriteString(fmt.Sprintf("%v", productId))

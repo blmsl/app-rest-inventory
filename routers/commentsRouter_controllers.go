@@ -181,6 +181,16 @@ func init() {
 
 	beego.GlobalControllerRouter["app-rest-inventory/controllers:HeadquartersController"] = append(beego.GlobalControllerRouter["app-rest-inventory/controllers:HeadquartersController"],
 		beego.ControllerComments{
+			Method: "AddProduct",
+			Router: `/:headquarter_id/products`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(
+				param.New("headquarter_id", param.IsRequired, param.InPath),
+			),
+			Params: nil})
+
+	beego.GlobalControllerRouter["app-rest-inventory/controllers:HeadquartersController"] = append(beego.GlobalControllerRouter["app-rest-inventory/controllers:HeadquartersController"],
+		beego.ControllerComments{
 			Method: "AddProducts",
 			Router: `/:headquarter_id/products`,
 			AllowHTTPMethods: []string{"patch"},
@@ -281,6 +291,14 @@ func init() {
 			MethodParams: param.Make(
 				param.New("product_id", param.IsRequired, param.InPath),
 			),
+			Params: nil})
+
+	beego.GlobalControllerRouter["app-rest-inventory/controllers:ProductsController"] = append(beego.GlobalControllerRouter["app-rest-inventory/controllers:ProductsController"],
+		beego.ControllerComments{
+			Method: "GetBrands",
+			Router: `/brands`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
 			Params: nil})
 
 	beego.GlobalControllerRouter["app-rest-inventory/controllers:ProvidersController"] = append(beego.GlobalControllerRouter["app-rest-inventory/controllers:ProvidersController"],
