@@ -321,7 +321,7 @@ func (c *HeadquartersController) GetProduct(headquarter_id, product_id *uint64) 
 	}
 
 	// Serve JSON.
-	c.Data["json"] = product.Product
+	c.Data["json"] = product
 	c.ServeJSON()
 }
 
