@@ -241,7 +241,7 @@ func (d *HeadquarterProductDao) FindByHeadquarterOrNameOrBrandOrColor(headquarte
 	headquarterProductProducts := make([]*HeadquarterProductProduct, 0)
 
 	// Execute sentence.
-	err := engine.Sql(sql.String()).Find(&headquarterProductProducts)
+	err := engine.Sql(sql.String()).AllCols().Find(&headquarterProductProducts)
 	if err != nil {
 		return nil, err
 	}
@@ -301,4 +301,23 @@ func (d *HeadquarterProductDao) Read(headquarterId, productId uint64) (*Headquar
 	}
 
 	return headquarterProductProducts[0], nil
+}
+
+func (d *HeadquarterProductDao) Update(headquarterId, productId uint64, product *HeadquarterProduct) error {
+	// Build sql
+	//var sql bytes.Buffer
+	/*sql.WriteString("UPDATE headquarter_product SET amount = ? WHERE headquarter_id = ? AND product_id = ?")
+
+	// Get engine.
+	engine := GetEngine(d.GetSchema())
+	_, err := engine.Exec(sql.String(), product.Amount, headquarterId, productId)
+	*/
+	// Get engine.
+	engine := GetEngine(d.GetSchema())
+	_, err := engine.Update(product, &HeadquarterProduct{HeadquarterId: headquarterId, ProductId: productId})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

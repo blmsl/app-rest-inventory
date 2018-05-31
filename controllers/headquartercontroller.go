@@ -233,12 +233,13 @@ func (c *HeadquartersController) AddProduct(headquarter_id *uint64) {
 	c.ServeJSON()
 }
 
-// @Title AddProducts
-// @Description Add products to headquarter.
+// @Title UpdateProduct
+// @Description Update headquarter product.
 // @Accept json
 // @Param	headquarter_id	path	uint64	true	"Headquarter id."
-// @router /:headquarter_id/products [patch]
-func (c *HeadquartersController) AddProducts(headquarter_id *uint64) {
+// @Param	product_id	path	uint64	true	"Product id."
+// @router /:headquarter_id/products/:product_id [patch]
+func (c *HeadquartersController) UpdateProduct(headquarter_id, product_id *uint64) {
 	// Get customer Id from the cookies.
 	customerId := c.Ctx.GetCookie("customer_id")
 	if len(customerId) == 0 {
@@ -255,31 +256,26 @@ func (c *HeadquartersController) AddProducts(headquarter_id *uint64) {
 	}
 
 	// Unmarshall request.
-	headquarterProducts := new(models.HeadquarterProducts)
-	err := json.Unmarshal(c.Ctx.Input.RequestBody, headquarterProducts)
+	headquarterProduct := new(models.HeadquarterProduct)
+	err := json.Unmarshal(c.Ctx.Input.RequestBody, headquarterProduct)
 	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
 
-	// Add products.
-	var errors []error
-	for i := range headquarterProducts.Products {
-		headquarterProduct := headquarterProducts.Products[i]
-		headquarterProduct.HeadquarterId = *headquarter_id
+	// Build DAO.
+	dao := models.NewHeadquarterProductDao(customerId)
 
-		err := models.Insert(customerId, headquarterProduct)
-		if err != nil {
-			errors = append(errors, err)
-		}
-	}
-
-	// Validate.
-	if len(errors) > 0 {
-		err := fmt.Errorf("Errors adding products.")
+	// Update product.
+	err = dao.Update(*headquarter_id, *product_id, headquarterProduct)
+	if err != nil {
 		logs.Error(err.Error())
 		c.Abort(err.Error())
 	}
+
+	// Serve JSON.
+	c.Data["json"] = headquarterProduct
+	c.ServeJSON()
 }
 
 // @Title GetProduct

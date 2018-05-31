@@ -283,6 +283,22 @@ paths:
         name: color
         description: Product color.
         type: string
+    post:
+      tags:
+      - headquarters
+      description: Add product to headquarter.
+      operationId: HeadquartersController.AddProduct
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        name: headquarter_id
+        description: Headquarter id.
+        required: true
+        type: integer
+        format: int64
     delete:
       tags:
       - headquarters
@@ -299,11 +315,12 @@ paths:
         required: true
         type: integer
         format: int64
+  /headquarters/{headquarter_id}/products/{headquarter_product_id}:
     patch:
       tags:
       - headquarters
-      description: Add products to headquarter.
-      operationId: HeadquartersController.AddProducts
+      description: Update headquarter product.
+      operationId: HeadquartersController.UpdateProduct
       consumes:
       - application/json
       produces:
@@ -312,6 +329,12 @@ paths:
       - in: path
         name: headquarter_id
         description: Headquarter id.
+        required: true
+        type: integer
+        format: int64
+      - in: path
+        name: headquarter_product_id
+        description: Headquarter product id.
         required: true
         type: integer
         format: int64
@@ -452,6 +475,16 @@ paths:
             $ref: '#/definitions/models.Product'
         "403":
           description: :product_id is empty
+  /products/brands:
+    get:
+      tags:
+      - products
+      description: Get product brands.
+      operationId: ProductsController.GetBrands
+      consumes:
+      - application/json
+      produces:
+      - application/json
   /providers/:
     get:
       tags:
@@ -576,22 +609,22 @@ definitions:
     title: Product
     type: object
     properties:
-      Brand:
+      brand:
         type: string
-      Color:
+      color:
         type: string
-      Created:
+      created:
         type: string
         format: string
-      Id:
+      id:
         type: integer
         format: int64
-      Name:
+      name:
         type: string
-      Price:
+      price:
         type: number
         format: double
-      Updated:
+      updated:
         type: string
         format: string
 tags:
