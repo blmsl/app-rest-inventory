@@ -21,6 +21,10 @@ export PATH=$PATH:$GOBIN
 $ bee
 ```
 
+### Development server
+
+Run `bee run` for a development server.
+
 ### Running Tests
 ```
 go test -run {TEST_NAME}
