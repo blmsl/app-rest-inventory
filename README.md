@@ -36,6 +36,8 @@ $ bee
 
 ### Development server
 
+**NOTE:** The `app.conf` file will not be pushed to the public repository for security. It will be added to the resources folder in the final package.
+
 Run `bee run` for a development server. Navigate to `https://{HOST}:{PORT}/swagger` to see the API definition.
 
 ## Testing
