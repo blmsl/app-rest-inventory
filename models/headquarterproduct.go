@@ -215,9 +215,9 @@ func (d *HeadquarterProductDao) FindByHeadquarterOrNameOrBrandOrColor(headquarte
 		sql.WriteString(" WHERE ")
 	}
 	if len(name) > 0 {
-		sql.WriteString("p.name = '")
+		sql.WriteString("p.name LIKE '")
 		sql.WriteString(name)
-		sql.WriteString("'")
+		sql.WriteString("%'")
 	}
 	if len(name) > 0 && len(brand) > 0 {
 		sql.WriteString(" OR ")
