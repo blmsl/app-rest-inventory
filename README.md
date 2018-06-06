@@ -2,7 +2,7 @@
 
 RESTful API of the inventory control system GoStock.
 
-Access to the functional [demo](https://app-rest-inventory.herokuapp.com/swagger).
+Access to the functional [demo](https://app-lb-inventory.herokuapp.com/swagger).
 
 ## Installing
 
