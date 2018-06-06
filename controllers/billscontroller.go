@@ -10,23 +10,23 @@ import (
 )
 
 type Bill struct {
-	Id            uint64
-	HeadquarterId uint64
-	UserId        string
-	Discount      float64
-	Sales         []*Sale
+	Id            uint64  `json:"id"`
+	HeadquarterId uint64  `json:"headquarter_id"`
+	UserId        string  `json:"user_id"`
+	Discount      float64 `json:"discount"`
+	Sales         []*Sale `json:"sales"`
 }
 
 type Sale struct {
-	Id      uint64
-	Amount  uint64
-	Product *Product
+	Id      uint64   `json:"id"`
+	Amount  uint64   `json:"amount"`
+	Product *Product `json:"product"`
 }
 
 type Product struct {
-	Id    uint64
-	Name  string
-	Price float64
+	Id    uint64  `json:"id"`
+	Name  string  `json:"name"`
+	Price float64 `json:"price"`
 }
 
 // Bills API
