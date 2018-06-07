@@ -176,40 +176,31 @@ func do(method, url string, headers map[string]string, request, response interfa
 	requestMutex.Lock()
 	defer requestMutex.Unlock()
 
+	// validate method.
+	if len(method) == 0 {
+		errors.New("No method was specified.")
+	}
+
 	// Build request.
 	var req *http.Request
 	var err error
-	switch method {
-	case http.MethodPost:
+
+	if request != nil {
+		var body *bytes.Buffer
 		var b []byte
+
 		b, err = json.Marshal(request)
+
 		if err != nil {
 			return fmt.Errorf("It was not possible marshal request. ", err.Error())
 		}
-		req, err = http.NewRequest(http.MethodPost, url, bytes.NewBuffer(b))
-	case http.MethodPatch:
-		var b []byte
-		b, err = json.Marshal(request)
-		if err != nil {
-			return fmt.Errorf("It was not possible marshal request. ", err.Error())
-		}
-		req, err = http.NewRequest(http.MethodPatch, url, bytes.NewBuffer(b))
-	case http.MethodGet:
-		req, err = http.NewRequest(http.MethodGet, url, nil)
-	case http.MethodDelete:
-		if request != nil {
-			var b []byte
-			b, err = json.Marshal(request)
-			if err != nil {
-				return fmt.Errorf("It was not possible marshal request. ", err.Error())
-			}
-			req, err = http.NewRequest(http.MethodDelete, url, bytes.NewBuffer(b))
-		} else {
-			req, err = http.NewRequest(http.MethodDelete, url, nil)
-		}
-	default:
-		return errors.New("No method was specified.")
+
+		body = bytes.NewBuffer(b)
+		req, err = http.NewRequest(method, url, body)
+	} else {
+		req, err = http.NewRequest(method, url, nil)
 	}
+
 	if err != nil {
 		return fmt.Errorf("It was not possible create request. ", err.Error())
 	}
