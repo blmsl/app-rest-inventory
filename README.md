@@ -47,3 +47,7 @@ Run `bee run` for a development server. Navigate to `https://{HOST}:{PORT}/swagg
 ```
 go test -run {TEST_NAME}
 ```
+
+## License
+
+This project is licensed under the GNU Affero General Public License v3.0 - see the [LICENSE.md](https://github.com/alobaton/app-rest-inventory/blob/master/LICENSE) file for details
