@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
+	"net/http"
 )
 
 // Providers API
@@ -21,6 +22,7 @@ func (c *ProvidersController) URLMapping() {
 // @Title CreateProvider
 // @Description Create provider.
 // @Accept json
+// @Success 200 {object} models.Provider
 // @router / [post]
 func (c *ProvidersController) CreateProvider() {
 	// Get customer Id from the cookies.
@@ -28,7 +30,7 @@ func (c *ProvidersController) CreateProvider() {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusUnauthorized, err.Error())
 	}
 
 	// Unmarshall request.
@@ -36,14 +38,14 @@ func (c *ProvidersController) CreateProvider() {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, provider)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
 
 	// Insert provider.
 	err = models.Insert(customerId, provider)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -54,6 +56,7 @@ func (c *ProvidersController) CreateProvider() {
 // @Title GetProvider
 // @Description Get provider.
 // @Param	provider_id	path	uint64	true	"Provider id."
+// @Success 200 {object} models.Provider
 // @router /:provider_id [get]
 func (c *ProvidersController) GetProvider(provider_id *uint64) {
 	// Get customer Id from the cookies.
@@ -61,14 +64,14 @@ func (c *ProvidersController) GetProvider(provider_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate provider Id.
 	if provider_id == nil {
 		err := fmt.Errorf("provider_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
 
 	// Prepare query.
@@ -79,7 +82,7 @@ func (c *ProvidersController) GetProvider(provider_id *uint64) {
 	err := models.Read(customerId, provider)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -89,6 +92,7 @@ func (c *ProvidersController) GetProvider(provider_id *uint64) {
 
 // @Title GetProviders
 // @Description Get providers.
+// @Success 200 {object} map[string]interface{}
 // @router / [get]
 func (c *ProvidersController) GetProviders() {
 	// Get customer Id from the cookies.
@@ -96,18 +100,22 @@ func (c *ProvidersController) GetProviders() {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusUnauthorized, err.Error())
 	}
 
 	providers := make([]*models.Provider, 0)
 	err := models.ReadAll(customerId, providers)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
-	c.Data["json"] = providers
+	response := make(map[string]interface{})
+	response["total"] = len(providers)
+	response["providers"] = providers
+
+	c.Data["json"] = response
 	c.ServeJSON()
 }
 
@@ -115,6 +123,7 @@ func (c *ProvidersController) GetProviders() {
 // @Description Update provider.
 // @Accept json
 // @Param	provider_id	path	uint64	true	"Provider id."
+// @Success 200 {object} models.Provider
 // @router /:provider_id [patch]
 func (c *ProvidersController) UpdateProvider(provider_id *uint64) {
 	// Get customer Id from the cookies.
@@ -122,14 +131,14 @@ func (c *ProvidersController) UpdateProvider(provider_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate provider Id.
 	if provider_id == nil {
 		err := fmt.Errorf("provider_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
 
 	// Unmarshall request.
@@ -137,7 +146,7 @@ func (c *ProvidersController) UpdateProvider(provider_id *uint64) {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, provider)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
 	provider.Id = *provider_id
 
@@ -145,7 +154,7 @@ func (c *ProvidersController) UpdateProvider(provider_id *uint64) {
 	err = models.Update(customerId, *provider_id, provider)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -155,7 +164,6 @@ func (c *ProvidersController) UpdateProvider(provider_id *uint64) {
 
 // @Title DeleteProvider
 // @Description Delete provider.
-// @Accept json
 // @Param	provider_id	path	uint64	true	"Provider id."
 // @router /:provider_id [delete]
 func (c *ProvidersController) DeleteProvider(provider_id *uint64) {
@@ -164,14 +172,14 @@ func (c *ProvidersController) DeleteProvider(provider_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate provider Id.
 	if provider_id == nil {
 		err := fmt.Errorf("provider_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
 
 	// Prepare query.
@@ -182,6 +190,6 @@ func (c *ProvidersController) DeleteProvider(provider_id *uint64) {
 	err := models.Delete(customerId, *provider_id, provider)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
 }

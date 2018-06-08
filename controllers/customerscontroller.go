@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
+	"net/http"
 )
 
 const (
@@ -29,6 +30,7 @@ func (c *CustomersController) URLMapping() {
 // @Title CreateCustomer
 // @Description Create customer.
 // @Accept json
+// @Success 200 {object} auth0.Group
 // @router / [post]
 func (c *CustomersController) CreateCustomer() {
 	// Unmarshall request.
@@ -36,14 +38,14 @@ func (c *CustomersController) CreateCustomer() {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, customer)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
 
 	// Create customer.
 	customer, err = auth0.Auth.CreateGroup(customer.Name, customer.Description)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
 
 	// Create the customer DB.
@@ -65,7 +67,6 @@ func (c *CustomersController) CreateCustomer() {
 		adminGroup, err = auth0.Auth.CreateGroup(nameBuilder.String(), fmt.Sprintf("%s admins group.", customerGroup.Name))
 		if err != nil {
 			logs.Error(err.Error())
-			c.Abort(err.Error())
 		}
 
 		// Create sellers group.
@@ -77,14 +78,12 @@ func (c *CustomersController) CreateCustomer() {
 		sellerGroup, err = auth0.Auth.CreateGroup(nameBuilder.String(), fmt.Sprintf("%s sellers group.", customerGroup.Name))
 		if err != nil {
 			logs.Error(err.Error())
-			c.Abort(err.Error())
 		}
 
 		// Nest groups.
 		err = auth0.Auth.NestGroups(customerGroup.Id, adminGroup.Id, sellerGroup.Id)
 		if err != nil {
 			logs.Error(err.Error())
-			c.Abort(err.Error())
 		}
 	}(customer)
 
@@ -95,6 +94,7 @@ func (c *CustomersController) CreateCustomer() {
 
 // @Title GetCustomer
 // @Description Get customer.
+// @Success 200 {object} auth0.Group
 // @router / [get]
 func (c *CustomersController) GetCustomer() {
 
@@ -103,13 +103,13 @@ func (c *CustomersController) GetCustomer() {
 	if len(customerID) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusUnauthorized, err.Error())
 	}
 
 	customer, err := auth0.Auth.GetGroup(customerID)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.

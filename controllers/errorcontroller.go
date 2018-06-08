@@ -9,7 +9,5 @@ type ErrorController struct {
 }
 
 func (c *ErrorController) Error404() {
-}
-
-func (c *ErrorController) Error500() {
+	// TODO: Create a custom 404 error template for GoStock.
 }

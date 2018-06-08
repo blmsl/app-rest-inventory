@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
+	"net/http"
 )
 
 // Headquarters API
@@ -21,6 +22,7 @@ func (c *HeadquartersController) URLMapping() {
 // @Title CreateHeadquarter
 // @Description Create headquarter.
 // @Accept json
+// @Success 200 {object} models.Headquarter
 // @router / [post]
 func (c *HeadquartersController) CreateHeadquarter() {
 	// Get customer Id from the cookies.
@@ -28,7 +30,7 @@ func (c *HeadquartersController) CreateHeadquarter() {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusUnauthorized, err.Error())
 	}
 
 	// Unmarshall request.
@@ -36,14 +38,14 @@ func (c *HeadquartersController) CreateHeadquarter() {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, headquarter)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
 
 	// Insert headquarter.
 	err = models.Insert(customerId, headquarter)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -54,6 +56,7 @@ func (c *HeadquartersController) CreateHeadquarter() {
 // @Title GetHeadquarter
 // @Description Get headquarter.
 // @Param	headquarter_id	path	uint64	true	"Headquarter id."
+// @Success 200 {object} models.Headquarter
 // @router /:headquarter_id [get]
 func (c *HeadquartersController) GetHeadquarter(headquarter_id *uint64) {
 	// Get customer Id from the cookies.
@@ -61,14 +64,14 @@ func (c *HeadquartersController) GetHeadquarter(headquarter_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate headquarter Id.
 	if headquarter_id == nil {
 		err := fmt.Errorf("headquarter_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
 
 	// Prepare query.
@@ -79,7 +82,7 @@ func (c *HeadquartersController) GetHeadquarter(headquarter_id *uint64) {
 	err := models.Read(customerId, headquarter)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -89,6 +92,7 @@ func (c *HeadquartersController) GetHeadquarter(headquarter_id *uint64) {
 
 // @Title GetHeadquarters
 // @Description Get headquarters.
+// @Success 200 {object} map[string]interface{}
 // @router / [get]
 func (c *HeadquartersController) GetHeadquarters() {
 	// Get customer Id from the cookies.
@@ -96,14 +100,14 @@ func (c *HeadquartersController) GetHeadquarters() {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusUnauthorized, err.Error())
 	}
 
 	headquarters := make([]*models.Headquarter, 0)
 	err := models.ReadAll(customerId, &headquarters)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -119,6 +123,7 @@ func (c *HeadquartersController) GetHeadquarters() {
 // @Description Update headquarter.
 // @Accept json
 // @Param	headquarter_id	path	uint64	true	"Headquarter id."
+// @Success 200 {object} models.Headquarter
 // @router /:headquarter_id [patch]
 func (c *HeadquartersController) UpdateHeadquarter(headquarter_id *uint64) {
 	// Get customer Id from the cookies.
@@ -126,14 +131,14 @@ func (c *HeadquartersController) UpdateHeadquarter(headquarter_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate headquarter Id.
 	if headquarter_id == nil {
 		err := fmt.Errorf("headquarter_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
 
 	// Unmarshall request.
@@ -141,7 +146,7 @@ func (c *HeadquartersController) UpdateHeadquarter(headquarter_id *uint64) {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, headquarter)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
 	headquarter.Id = *headquarter_id
 
@@ -149,7 +154,7 @@ func (c *HeadquartersController) UpdateHeadquarter(headquarter_id *uint64) {
 	err = models.Update(customerId, *headquarter_id, headquarter)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -159,7 +164,6 @@ func (c *HeadquartersController) UpdateHeadquarter(headquarter_id *uint64) {
 
 // @Title DeleteHeadquarter
 // @Description Delete headquarter.
-// @Accept json
 // @Param	headquarter_id	path	uint64	true	"Headquarter id."
 // @router /:headquarter_id [delete]
 func (c *HeadquartersController) DeleteHeadquarter(headquarter_id *uint64) {
@@ -168,14 +172,14 @@ func (c *HeadquartersController) DeleteHeadquarter(headquarter_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate headquarter Id.
 	if headquarter_id == nil {
 		err := fmt.Errorf("headquarter_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
 
 	// Prepare query.
@@ -186,7 +190,7 @@ func (c *HeadquartersController) DeleteHeadquarter(headquarter_id *uint64) {
 	err := models.Delete(customerId, *headquarter_id, headquarter)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
 }
 
@@ -194,6 +198,7 @@ func (c *HeadquartersController) DeleteHeadquarter(headquarter_id *uint64) {
 // @Description Add product to headquarter.
 // @Accept json
 // @Param	headquarter_id	path	uint64	true	"Headquarter id."
+// @Success 200 {object} models.HeadquarterProduct
 // @router /:headquarter_id/products [post]
 func (c *HeadquartersController) AddProduct(headquarter_id *uint64) {
 	// Get customer Id from the cookies.
@@ -201,14 +206,14 @@ func (c *HeadquartersController) AddProduct(headquarter_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate headquarter Id.
 	if headquarter_id == nil {
 		err := fmt.Errorf("headquarter can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
 
 	// Unmarshall request.
@@ -216,7 +221,7 @@ func (c *HeadquartersController) AddProduct(headquarter_id *uint64) {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, headquarterProduct)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
 
 	// Add product.
@@ -225,7 +230,7 @@ func (c *HeadquartersController) AddProduct(headquarter_id *uint64) {
 	err = models.Insert(customerId, headquarterProduct)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -238,6 +243,7 @@ func (c *HeadquartersController) AddProduct(headquarter_id *uint64) {
 // @Accept json
 // @Param	headquarter_id	path	uint64	true	"Headquarter id."
 // @Param	product_id	path	uint64	true	"Product id."
+// @Success 200 {object} models.HeadquarterProduct
 // @router /:headquarter_id/products/:product_id [patch]
 func (c *HeadquartersController) UpdateProduct(headquarter_id, product_id *uint64) {
 	// Get customer Id from the cookies.
@@ -245,14 +251,14 @@ func (c *HeadquartersController) UpdateProduct(headquarter_id, product_id *uint6
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate headquarter Id.
 	if headquarter_id == nil {
 		err := fmt.Errorf("headquarter can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
 
 	// Unmarshall request.
@@ -260,7 +266,7 @@ func (c *HeadquartersController) UpdateProduct(headquarter_id, product_id *uint6
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, headquarterProduct)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
 
 	// Build DAO.
@@ -270,7 +276,7 @@ func (c *HeadquartersController) UpdateProduct(headquarter_id, product_id *uint6
 	err = dao.Update(*headquarter_id, *product_id, headquarterProduct)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -280,9 +286,9 @@ func (c *HeadquartersController) UpdateProduct(headquarter_id, product_id *uint6
 
 // @Title GetProduct
 // @Description Get headquarter product.
-// @Accept json
 // @Param	headquarter_id	path	uint64	true	"Headquarter id."
 // @Param	product_id	path	uint64	true	"Product id."
+// @Success 200 {object} models.HeadquarterProduct
 // @router /:headquarter_id/products/:product_id [get]
 func (c *HeadquartersController) GetProduct(headquarter_id, product_id *uint64) {
 	// Get customer Id from the cookies.
@@ -290,20 +296,20 @@ func (c *HeadquartersController) GetProduct(headquarter_id, product_id *uint64) 
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusUnauthorized, err.Error())
 	}
 	// Validate headquarter Id.
 	if headquarter_id == nil {
 		err := fmt.Errorf("headquarter can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
 
 	// Validate product Id.
 	if product_id == nil {
 		err := fmt.Errorf("product_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
 
 	// Build DAO.
@@ -313,7 +319,7 @@ func (c *HeadquartersController) GetProduct(headquarter_id, product_id *uint64) 
 	product, err := dao.Read(*headquarter_id, *product_id)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -323,11 +329,11 @@ func (c *HeadquartersController) GetProduct(headquarter_id, product_id *uint64) 
 
 // @Title GetProduct
 // @Description Get headquarter product.
-// @Accept json
 // @Param	headquarter_id	path	uint64	true	"Headquarter id."
 // @Param name query string false "Product name."
 // @Param brand query string false "Product brand."
 // @Param color query string false "Product color."
+// @Success 200 {object} map[string]interface{}
 // @router /:headquarter_id/products [get]
 func (c *HeadquartersController) GetProducts(headquarter_id *uint64, name, brand, color string) {
 	// Get customer Id from the cookies.
@@ -335,14 +341,14 @@ func (c *HeadquartersController) GetProducts(headquarter_id *uint64, name, brand
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate headquarter Id.
 	if headquarter_id == nil {
 		err := fmt.Errorf("headquarter can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
 
 	// Build DAO.
@@ -352,14 +358,14 @@ func (c *HeadquartersController) GetProducts(headquarter_id *uint64, name, brand
 	products, err := dao.FindByHeadquarterOrNameOrBrandOrColor(*headquarter_id, name, brand, color)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
 
 	// Get stock price.
 	price, err := dao.StockPriceByHeadquarter(*headquarter_id)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -374,7 +380,6 @@ func (c *HeadquartersController) GetProducts(headquarter_id *uint64, name, brand
 
 // @Title RemoveProducts
 // @Description Remove products from headquarter.
-// @Accept json
 // @Param	headquarter_id	path	uint64	true	"Headquarter id."
 // @router /:headquarter_id/products [delete]
 func (c *HeadquartersController) RemoveProducts(headquarter_id *uint64) {
@@ -383,14 +388,14 @@ func (c *HeadquartersController) RemoveProducts(headquarter_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate headquarter Id.
 	if headquarter_id == nil {
 		err := fmt.Errorf("headquarter can not be empty.")
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
 
 	// Unmarshall request.
@@ -398,7 +403,7 @@ func (c *HeadquartersController) RemoveProducts(headquarter_id *uint64) {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, productsId)
 	if err != nil {
 		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
 
 	// Build dao.
@@ -410,13 +415,13 @@ func (c *HeadquartersController) RemoveProducts(headquarter_id *uint64) {
 
 		err := dao.DeleteByHeadquarterIdAndProductId(*headquarter_id, productId)
 		if err != nil {
+			logs.Error(err.Error())
 			errors = append(errors, err)
 		}
 	}
 
 	if len(errors) > 0 {
 		err := fmt.Errorf("Errors removing products.")
-		logs.Error(err.Error())
-		c.Abort(err.Error())
+		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
 }
