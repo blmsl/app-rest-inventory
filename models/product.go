@@ -34,6 +34,7 @@ func NewProductDao(schema string) *ProductDao {
 	return d
 }
 
+// FindByNameOrBrandOrColor
 // @Param name Product name.
 // @Param brand Product brand.
 // @Param color Product color.
@@ -48,6 +49,7 @@ func (d *ProductDao) FindByNameOrBrandOrColor(name, brand, color string) ([]*Pro
 	return products, err
 }
 
+// GetBrands
 func (d *ProductDao) GetBrands() ([]string, error) {
 	// Get engine.
 	engine := GetEngine(d.GetSchema())

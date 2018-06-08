@@ -1,6 +1,9 @@
 package models
 
 import (
+	"app-rest-inventory/util/stringutil"
+	"bytes"
+	"fmt"
 	"time"
 )
 
@@ -41,14 +44,38 @@ func NewSaleDao(schema string) *SaleDao {
 	return d
 }
 
+// FindByBill
 // @Param BillId Bill Id.
-func (d *SaleDao) FindByBill(BillId uint64) ([]*SaleBillProduct, error) {
+func (d *SaleDao) FindByBill(billId uint64) ([]*SaleBillProduct, error) {
+	// Build sentence.
+	var sql bytes.Buffer
+	sql.WriteString("SELECT * FROM ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(SaleTableName)
+	sql.WriteString(" s INNER JOIN ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(BillTableName)
+	sql.WriteString(" b ON s.bill_id = b.id ")
+	sql.WriteString("INNER JOIN ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(ProductTableName)
+	sql.WriteString(" b ON s.product_id = p.id ")
+	sql.WriteString("WHERE s.bill_id = ")
+	sql.WriteString(fmt.Sprintf("%v", billId))
+	sql.WriteString(" ORDER BY s.id ASC")
+
 	// Get engine.
 	engine := GetEngine(d.GetSchema())
-
 	sales := make([]*SaleBillProduct, 0)
-	err := engine.Table(SaleTableName).Join("INNER", BillTableName, "bill.id = sale.bill_id").Join("INNER", ProductTableName, "product.id = sale.product_id").
-		Where("sale.bill_id = ?", BillId).Asc("sale.id").Find(&sales)
+
+	// Execute sentence.
+	err := engine.Sql(sql.String()).AllCols().Find(&sales)
 	if err != nil {
 		return nil, err
 	}
@@ -61,13 +88,39 @@ func (d *SaleDao) FindByBill(BillId uint64) ([]*SaleBillProduct, error) {
 // @Param start Start time.
 // @Param end End time.
 func (d *SaleDao) FindByProductAndDates(productId uint64, start, end time.Time) ([]*SaleBillProduct, error) {
+	// Build sentence.
+	var sql bytes.Buffer
+	sql.WriteString("SELECT * FROM ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(SaleTableName)
+	sql.WriteString(" s INNER JOIN ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(BillTableName)
+	sql.WriteString(" b ON s.bill_id = b.id ")
+	sql.WriteString("INNER JOIN ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(ProductTableName)
+	sql.WriteString(" p ON s.product_id = p.id ")
+	sql.WriteString("AND s.product_id = ")
+	sql.WriteString(fmt.Sprintf("%v", productId))
+	sql.WriteString(" WHERE s.created >= '")
+	sql.WriteString(start.UTC().Format(stringutil.UTCFormat))
+	sql.WriteString("' OR s.created <= '")
+	sql.WriteString(end.UTC().Format(stringutil.UTCFormat))
+	sql.WriteString("' ORDER BY s.id ASC")
+
 	// Get engine.
 	engine := GetEngine(d.GetSchema())
-
-	// Build Query.
 	sales := make([]*SaleBillProduct, 0)
-	err := engine.Table(SaleTableName).Join("INNER", BillTableName, "bill.id = sale.bill_id").Join("INNER", ProductTableName, "product.id = sale.product_id").
-		Where("sale.product_id = ?", productId).And("sale.created >= ?", start).Or("sale.created <= ?", end).Asc("sale.bill_id").Find(&sales)
+
+	// Execute sentence.
+	err := engine.Sql(sql.String()).AllCols().Find(&sales)
 	if err != nil {
 		return nil, err
 	}
@@ -79,13 +132,37 @@ func (d *SaleDao) FindByProductAndDates(productId uint64, start, end time.Time) 
 // @Param start Start time.
 // @Param end End time.
 func (d *SaleDao) FindByDates(start, end time.Time) ([]*SaleBillProduct, error) {
+	// Build sentence.
+	var sql bytes.Buffer
+	sql.WriteString("SELECT * FROM ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(SaleTableName)
+	sql.WriteString(" s INNER JOIN ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(BillTableName)
+	sql.WriteString(" b ON s.bill_id = b.id ")
+	sql.WriteString("INNER JOIN ")
+	sql.WriteString("\"")
+	sql.WriteString(d.GetSchema())
+	sql.WriteString("\".")
+	sql.WriteString(ProductTableName)
+	sql.WriteString(" p ON s.product_id = p.id ")
+	sql.WriteString("WHERE s.created >= '")
+	sql.WriteString(start.UTC().Format(stringutil.UTCFormat))
+	sql.WriteString("' OR s.created <= '")
+	sql.WriteString(end.UTC().Format(stringutil.UTCFormat))
+	sql.WriteString("' ORDER BY s.id ASC")
+
 	// Get engine.
 	engine := GetEngine(d.GetSchema())
-
-	// Build Query.
 	sales := make([]*SaleBillProduct, 0)
-	err := engine.Table(SaleTableName).Join("INNER", BillTableName, "bill.id = sale.bill_id").Join("INNER", ProductTableName, "product.id = sale.product_id").
-		Where("sale.created >= ?", start).Or("sale.created <= ?", end).Asc("sale.bill_id").Find(&sales)
+
+	// Execute sentence.
+	err := engine.Sql(sql.String()).AllCols().Find(&sales)
 	if err != nil {
 		return nil, err
 	}
