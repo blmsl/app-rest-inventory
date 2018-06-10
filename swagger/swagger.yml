@@ -25,6 +25,11 @@ paths:
         description: To date
         schema:
           $ref: '#/definitions/.Time'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/.map[string]interface{}'
     post:
       tags:
       - bills
@@ -34,6 +39,11 @@ paths:
       - application/json
       produces:
       - application/json
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/.Bill'
   /bills/{bill_id}:
     get:
       tags:
@@ -47,15 +57,16 @@ paths:
         required: true
         type: integer
         format: int64
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/.Bill'
     delete:
       tags:
       - bills
       description: Delete bill.
       operationId: BillsController.DeleteBill
-      consumes:
-      - application/json
-      produces:
-      - application/json
       parameters:
       - in: path
         name: bill_id
@@ -79,16 +90,17 @@ paths:
         required: true
         type: integer
         format: int64
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/.map[string]interface{}'
   /bills/{bill_id}/sales/{sale_id}:
     delete:
       tags:
       - bills
       description: Remove sale from bill.
       operationId: BillsController.RemoveSale
-      consumes:
-      - application/json
-      produces:
-      - application/json
       parameters:
       - in: path
         name: bill_id
@@ -141,6 +153,11 @@ paths:
         description: To date
         schema:
           $ref: '#/definitions/.Time'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/.map[string]interface{}'
     post:
       tags:
       - caterings
@@ -150,6 +167,11 @@ paths:
       - application/json
       produces:
       - application/json
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Catering'
   /caterings/{catering_id}:
     get:
       tags:
@@ -163,6 +185,11 @@ paths:
         required: true
         type: integer
         format: int64
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Catering'
     patch:
       tags:
       - caterings
@@ -179,12 +206,22 @@ paths:
         required: true
         type: integer
         format: int64
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Catering'
   /customers/:
     get:
       tags:
       - customers
       description: Get customer.
       operationId: CustomersController.GetCustomer
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/auth0.Group'
     post:
       tags:
       - customers
@@ -194,12 +231,22 @@ paths:
       - application/json
       produces:
       - application/json
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/auth0.Group'
   /headquarters/:
     get:
       tags:
       - headquarters
       description: Get headquarters.
       operationId: HeadquartersController.GetHeadquarters
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/.map[string]interface{}'
     post:
       tags:
       - headquarters
@@ -209,6 +256,11 @@ paths:
       - application/json
       produces:
       - application/json
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Headquarter'
   /headquarters/{headquarter_id}:
     get:
       tags:
@@ -222,15 +274,16 @@ paths:
         required: true
         type: integer
         format: int64
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Headquarter'
     delete:
       tags:
       - headquarters
       description: Delete headquarter.
       operationId: HeadquartersController.DeleteHeadquarter
-      consumes:
-      - application/json
-      produces:
-      - application/json
       parameters:
       - in: path
         name: headquarter_id
@@ -254,16 +307,45 @@ paths:
         required: true
         type: integer
         format: int64
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Headquarter'
+  /headquarters/{headquarter_id}/bills:
+    get:
+      tags:
+      - headquarters
+      description: Get headquarter bills.
+      operationId: HeadquartersController.GetBills
+      parameters:
+      - in: path
+        name: headquarter_id
+        description: Headquarter id.
+        required: true
+        type: integer
+        format: int64
+      - in: query
+        name: from
+        description: From date
+        schema:
+          $ref: '#/definitions/.Time'
+      - in: query
+        name: to
+        description: To date
+        schema:
+          $ref: '#/definitions/.Time'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/.map[string]interface{}'
   /headquarters/{headquarter_id}/products:
     get:
       tags:
       - headquarters
       description: Get headquarter product.
       operationId: HeadquartersController.GetProduct
-      consumes:
-      - application/json
-      produces:
-      - application/json
       parameters:
       - in: path
         name: headquarter_id
@@ -283,6 +365,11 @@ paths:
         name: color
         description: Product color.
         type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/.map[string]interface{}'
     post:
       tags:
       - headquarters
@@ -299,15 +386,16 @@ paths:
         required: true
         type: integer
         format: int64
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.HeadquarterProduct'
     delete:
       tags:
       - headquarters
       description: Remove products from headquarter.
       operationId: HeadquartersController.RemoveProducts
-      consumes:
-      - application/json
-      produces:
-      - application/json
       parameters:
       - in: path
         name: headquarter_id
@@ -315,7 +403,30 @@ paths:
         required: true
         type: integer
         format: int64
-  /headquarters/{headquarter_id}/products/{headquarter_product_id}:
+  /headquarters/{headquarter_id}/products/{product_id}:
+    get:
+      tags:
+      - headquarters
+      description: Get headquarter product.
+      operationId: HeadquartersController.GetProduct
+      parameters:
+      - in: path
+        name: headquarter_id
+        description: Headquarter id.
+        required: true
+        type: integer
+        format: int64
+      - in: path
+        name: product_id
+        description: Product id.
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.HeadquarterProduct'
     patch:
       tags:
       - headquarters
@@ -333,34 +444,16 @@ paths:
         type: integer
         format: int64
       - in: path
-        name: headquarter_product_id
-        description: Headquarter product id.
-        required: true
-        type: integer
-        format: int64
-  /headquarters/{headquarter_id}/products/{product_id}:
-    get:
-      tags:
-      - headquarters
-      description: Get headquarter product.
-      operationId: HeadquartersController.GetProduct
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      parameters:
-      - in: path
-        name: headquarter_id
-        description: Headquarter id.
-        required: true
-        type: integer
-        format: int64
-      - in: path
         name: product_id
         description: Product id.
         required: true
         type: integer
         format: int64
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.HeadquarterProduct'
   /products/:
     get:
       tags:
@@ -380,6 +473,11 @@ paths:
         name: color
         description: Product color.
         type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/.map[string]interface{}'
     post:
       tags:
       - products
@@ -394,18 +492,12 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/models.Product'
-        "403":
-          description: :product_id is empty
   /products/{catering_id}:
     delete:
       tags:
       - products
       description: Delete catering.
       operationId: ProductsController.DeleteCatering
-      consumes:
-      - application/json
-      produces:
-      - application/json
       parameters:
       - in: path
         name: catering_id
@@ -431,17 +523,11 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/models.Product'
-        "403":
-          description: :product_id is empty
     delete:
       tags:
       - products
       description: Delete product.
       operationId: ProductsController.DeleteProduct
-      consumes:
-      - application/json
-      produces:
-      - application/json
       parameters:
       - in: path
         name: product_id
@@ -449,9 +535,6 @@ paths:
         required: true
         type: integer
         format: int64
-      responses:
-        "403":
-          description: :product_id is empty
     patch:
       tags:
       - products
@@ -473,24 +556,28 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/models.Product'
-        "403":
-          description: :product_id is empty
   /products/brands:
     get:
       tags:
       - products
       description: Get product brands.
       operationId: ProductsController.GetBrands
-      consumes:
-      - application/json
-      produces:
-      - application/json
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/.map[string]interface{}'
   /providers/:
     get:
       tags:
       - providers
       description: Get providers.
       operationId: ProvidersController.GetProviders
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/.map[string]interface{}'
     post:
       tags:
       - providers
@@ -500,6 +587,11 @@ paths:
       - application/json
       produces:
       - application/json
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Provider'
   /providers/{provider_id}:
     get:
       tags:
@@ -513,15 +605,16 @@ paths:
         required: true
         type: integer
         format: int64
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Provider'
     delete:
       tags:
       - providers
       description: Delete provider.
       operationId: ProvidersController.DeleteProvider
-      consumes:
-      - application/json
-      produces:
-      - application/json
       parameters:
       - in: path
         name: provider_id
@@ -545,12 +638,22 @@ paths:
         required: true
         type: integer
         format: int64
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Provider'
   /users/:
     get:
       tags:
       - users
       description: Get users.
       operationId: UsersController.GetUsers
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/auth0.Members'
     post:
       tags:
       - users
@@ -560,6 +663,11 @@ paths:
       - application/json
       produces:
       - application/json
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/auth0.User'
   /users/{user_id}:
     get:
       tags:
@@ -572,15 +680,16 @@ paths:
         description: User id.
         required: true
         type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/auth0.User'
     delete:
       tags:
       - users
       description: Delete user.
       operationId: UsersController.DeleteUser
-      consumes:
-      - application/json
-      produces:
-      - application/json
       parameters:
       - in: path
         name: user_id
@@ -602,9 +711,160 @@ paths:
         description: User id.
         required: true
         type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/auth0.User'
 definitions:
+  .Bill:
+    type: object
   .Time:
     type: object
+  .false:
+    type: object
+  .map[string]interface{}:
+    type: object
+  auth0.Group:
+    title: Group
+    type: object
+    properties:
+      _id:
+        type: string
+      description:
+        type: string
+      members:
+        type: array
+        items:
+          type: string
+      name:
+        type: string
+  auth0.Identity:
+    title: Identity
+    type: object
+    properties:
+      connection:
+        type: string
+      isSocial:
+        type: boolean
+      provider:
+        type: string
+      user_id:
+        type: string
+  auth0.Members:
+    title: Members
+    type: object
+    properties:
+      total:
+        type: integer
+        format: int64
+      users:
+        type: array
+        items:
+          $ref: '#/definitions/auth0.User'
+  auth0.User:
+    title: User
+    type: object
+    properties:
+      app_metadata:
+        $ref: '#/definitions/15094.0xc42040a9c0.false'
+      connection:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      email_verified:
+        type: boolean
+      identities:
+        type: array
+        items:
+          $ref: '#/definitions/auth0.Identity'
+      nickname:
+        type: string
+      password:
+        type: string
+      phone_number:
+        type: string
+      phone_verified:
+        type: boolean
+      picture:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+      user_metadata:
+        $ref: '#/definitions/14809.0xc42040a900.false'
+      username:
+        type: string
+      verify_email:
+        type: boolean
+  models.Catering:
+    title: Catering
+    type: object
+    properties:
+      amount:
+        type: integer
+        format: int64
+      created:
+        type: string
+        format: string
+      id:
+        type: integer
+        format: int64
+      product_id:
+        type: integer
+        format: int64
+      provider_id:
+        type: integer
+        format: int64
+      updated:
+        type: string
+        format: string
+  models.Headquarter:
+    title: Headquarter
+    type: object
+    properties:
+      address:
+        type: string
+      created:
+        type: string
+        format: string
+      customer_id:
+        type: string
+      id:
+        type: integer
+        format: int64
+      name:
+        type: string
+      phone:
+        type: string
+      updated:
+        type: string
+        format: string
+  models.HeadquarterProduct:
+    title: HeadquarterProduct
+    type: object
+    properties:
+      amount:
+        type: integer
+        format: int64
+      created:
+        type: string
+        format: string
+      headquarter_id:
+        type: integer
+        format: int64
+      id:
+        type: integer
+        format: int64
+      product_id:
+        type: integer
+        format: int64
+      updated:
+        type: string
+        format: string
   models.Product:
     title: Product
     type: object
@@ -624,6 +884,25 @@ definitions:
       price:
         type: number
         format: double
+      updated:
+        type: string
+        format: string
+  models.Provider:
+    title: Provider
+    type: object
+    properties:
+      address:
+        type: string
+      created:
+        type: string
+        format: string
+      id:
+        type: integer
+        format: int64
+      name:
+        type: string
+      phone:
+        type: string
       updated:
         type: string
         format: string

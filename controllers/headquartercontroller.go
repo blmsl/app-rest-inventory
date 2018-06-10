@@ -7,6 +7,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"net/http"
+	"time"
 )
 
 // Headquarters API
@@ -346,7 +347,7 @@ func (c *HeadquartersController) GetProducts(headquarter_id *uint64, name, brand
 
 	// Validate headquarter Id.
 	if headquarter_id == nil {
-		err := fmt.Errorf("headquarter can not be empty.")
+		err := fmt.Errorf("headquarter_id can not be empty.")
 		logs.Error(err.Error())
 		serveError(c.Controller, http.StatusBadRequest, err.Error())
 	}
@@ -424,4 +425,89 @@ func (c *HeadquartersController) RemoveProducts(headquarter_id *uint64) {
 		err := fmt.Errorf("Errors removing products.")
 		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
+}
+
+// @Title GetBills
+// @Description Get headquarter bills.
+// @Param	headquarter_id	path	uint64	true	"Headquarter id."
+// @Param from query time.Time false "From date"
+// @Param to query time.Time false "To date"
+// @Success 200 {object} map[string]interface{}
+// @router /:headquarter_id/bills [get]
+func (c *HeadquartersController) GetBills(headquarter_id *uint64, from, to time.Time) {
+	// Get customer Id from the cookies.
+	customerId := c.Ctx.GetCookie("customer_id")
+	if len(customerId) == 0 {
+		err := fmt.Errorf("customer_id can not be empty.")
+		logs.Error(err.Error())
+		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+	}
+
+	// Validate headquarter Id.
+	if headquarter_id == nil {
+		err := fmt.Errorf("headquarter_id can not be empty.")
+		logs.Error(err.Error())
+		serveError(c.Controller, http.StatusBadRequest, err.Error())
+	}
+
+	// Build DAO.
+	dao := models.NewSaleDao(customerId)
+
+	// Get sales.
+	sales, err := dao.FindByHeadquarterIDAndDates(*headquarter_id, from, to)
+	if err != nil {
+		logs.Error(err.Error())
+		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+	}
+
+	// Group by bill.
+	bills := make(map[uint64][]*models.SaleBillProduct)
+	for _, sale := range sales {
+		bills[sale.Sale.BillId] = append(bills[sale.Sale.BillId], sale)
+	}
+
+	// Build response bills.
+	bs := make([]*Bill, 0)
+	for bill_id, sales := range bills {
+		// Build bill.
+		b := new(Bill)
+		b.Id = bill_id
+		b.Sales = make([]*Sale, 0)
+
+		for _, sale := range sales {
+			// update bill data.
+			b.HeadquarterId = sale.Bill.HeadquarterId
+			b.UserId = sale.Bill.UserId
+			b.Discount = sale.Bill.Discount
+			b.Created = sale.Bill.Created
+			b.Updated = sale.Bill.Updated
+
+			// Create sale.
+			s := new(Sale)
+			s.Id = sale.Sale.Id
+			s.Amount = sale.Sale.Amount
+			s.Product = new(Product)
+			s.Product.Id = sale.Sale.ProductId
+			s.Product.Name = sale.Product.Name
+			s.Product.Price = sale.Product.Price
+
+			b.Sales = append(b.Sales, s)
+		}
+
+		// Add to response bills.
+		bs = append(bs, b)
+	}
+
+	// Get revenue.
+	revenue, _ := dao.RevenueByHeadquarterIDAndDates(*headquarter_id, from, to)
+
+	// Serve JSON.
+	response := make(map[string]interface{})
+	response["total"] = len(bs)
+	response["revenue"] = revenue
+	response["bills"] = bs
+
+	c.Data["json"] = response
+	c.ServeJSON()
+
 }

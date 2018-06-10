@@ -181,6 +181,18 @@ func init() {
 
 	beego.GlobalControllerRouter["app-rest-inventory/controllers:HeadquartersController"] = append(beego.GlobalControllerRouter["app-rest-inventory/controllers:HeadquartersController"],
 		beego.ControllerComments{
+			Method: "GetBills",
+			Router: `/:headquarter_id/bills`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(
+				param.New("headquarter_id", param.IsRequired, param.InPath),
+				param.New("from"),
+				param.New("to"),
+			),
+			Params: nil})
+
+	beego.GlobalControllerRouter["app-rest-inventory/controllers:HeadquartersController"] = append(beego.GlobalControllerRouter["app-rest-inventory/controllers:HeadquartersController"],
+		beego.ControllerComments{
 			Method: "AddProduct",
 			Router: `/:headquarter_id/products`,
 			AllowHTTPMethods: []string{"post"},

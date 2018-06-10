@@ -11,11 +11,13 @@ import (
 )
 
 type Bill struct {
-	Id            uint64  `json:"id"`
-	HeadquarterId uint64  `json:"headquarter_id"`
-	UserId        string  `json:"user_id"`
-	Discount      float64 `json:"discount"`
-	Sales         []*Sale `json:"sales"`
+	Id            uint64    `json:"id"`
+	HeadquarterId uint64    `json:"headquarter_id"`
+	UserId        string    `json:"user_id"`
+	Discount      float64   `json:"discount"`
+	Sales         []*Sale   `json:"sales"`
+	Created       time.Time `json:"created"`
+	Updated       time.Time `json:"updated"`
 }
 
 type Sale struct {
@@ -71,7 +73,11 @@ func (c *BillsController) CreateBill() {
 		logs.Error(err.Error())
 		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
+
+	// Update request fields.
 	request.Id = b.Id
+	request.Created = b.Created
+	request.Updated = b.Updated
 
 	// Insert sales.
 	var errors []error
@@ -87,6 +93,7 @@ func (c *BillsController) CreateBill() {
 			errors = append(errors, err)
 		}
 
+		// update sale id.
 		sale.Id = s.Id
 	}
 
@@ -146,6 +153,8 @@ func (c *BillsController) GetBill(bill_id *uint64) {
 	response.HeadquarterId = bill.HeadquarterId
 	response.UserId = bill.UserId
 	response.Discount = bill.Discount
+	response.Created = bill.Created
+	response.Updated = bill.Updated
 	response.Sales = make([]*Sale, 0)
 
 	for _, sale := range sales {
@@ -196,20 +205,23 @@ func (c *BillsController) GetBills(from, to time.Time) {
 		bills[sale.Sale.BillId] = append(bills[sale.Sale.BillId], sale)
 	}
 
-	// Build response.
-	response := make([]*Bill, 0)
-	for BillId, sales := range bills {
+	// Build response bills.
+	bs := make([]*Bill, 0)
+	for bill_id, sales := range bills {
 		// Build bill.
 		b := new(Bill)
-		b.Id = BillId
-		if len(sales) > 0 {
-			b.HeadquarterId = sales[0].Bill.HeadquarterId
-			b.UserId = sales[0].Bill.UserId
-			b.Discount = sales[0].Bill.Discount
-			b.Sales = make([]*Sale, 0)
-		}
+		b.Id = bill_id
+		b.Sales = make([]*Sale, 0)
 
 		for _, sale := range sales {
+			// update bill data.
+			b.HeadquarterId = sale.Bill.HeadquarterId
+			b.UserId = sale.Bill.UserId
+			b.Discount = sale.Bill.Discount
+			b.Created = sale.Bill.Created
+			b.Updated = sale.Bill.Updated
+
+			// Create sale.
 			s := new(Sale)
 			s.Id = sale.Sale.Id
 			s.Amount = sale.Sale.Amount
@@ -221,20 +233,20 @@ func (c *BillsController) GetBills(from, to time.Time) {
 			b.Sales = append(b.Sales, s)
 		}
 
-		// Add to response.
-		response = append(response, b)
+		// Add to response bills.
+		bs = append(bs, b)
 	}
 
 	// Get revenue.
 	revenue, _ := dao.RevenueByDates(from, to)
 
 	// Serve JSON.
-	rs := make(map[string]interface{})
-	rs["total"] = len(response)
-	rs["revenue"] = revenue
-	rs["bills"] = response
+	response := make(map[string]interface{})
+	response["total"] = len(bs)
+	response["revenue"] = revenue
+	response["bills"] = bs
 
-	c.Data["json"] = rs
+	c.Data["json"] = response
 	c.ServeJSON()
 }
 
@@ -329,10 +341,21 @@ func (c *BillsController) DeleteBill(bill_id *uint64) {
 	b := new(models.Bill)
 	b.Id = *bill_id
 
-	// Update the sale.
+	// Update the bill.
 	err := models.Delete(customerId, *bill_id, b)
 	if err != nil {
 		logs.Error(err.Error())
 		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
+
+	// Build DAO.
+	dao := models.NewSaleDao(customerId)
+
+	// Delete sales.
+	err = dao.DeleteByBillId(*bill_id)
+	if err != nil {
+		logs.Error(err.Error())
+		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+	}
+
 }
