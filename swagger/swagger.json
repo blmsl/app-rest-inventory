@@ -61,7 +61,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/.Bill"
+                            "$ref": "#/definitions/controllers.Bill"
                         }
                     }
                 }
@@ -88,7 +88,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/.Bill"
+                            "$ref": "#/definitions/controllers.Bill"
                         }
                     }
                 }
@@ -963,15 +963,7 @@
                     "users"
                 ],
                 "description": "Get users.",
-                "operationId": "UsersController.GetUsers",
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/auth0.Members"
-                        }
-                    }
-                }
+                "operationId": "UsersController.GetUsers"
             },
             "post": {
                 "tags": [
@@ -984,15 +976,7 @@
                 ],
                 "produces": [
                     "application/json"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/auth0.User"
-                        }
-                    }
-                }
+                ]
             }
         },
         "/users/{user_id}": {
@@ -1010,15 +994,7 @@
                         "required": true,
                         "type": "string"
                     }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/auth0.User"
-                        }
-                    }
-                }
+                ]
             },
             "delete": {
                 "tags": [
@@ -1056,26 +1032,12 @@
                         "required": true,
                         "type": "string"
                     }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/auth0.User"
-                        }
-                    }
-                }
+                ]
             }
         }
     },
     "definitions": {
-        ".Bill": {
-            "type": "object"
-        },
         ".Time": {
-            "type": "object"
-        },
-        ".false": {
             "type": "object"
         },
         ".map[string]interface{}": {
@@ -1102,94 +1064,72 @@
                 }
             }
         },
-        "auth0.Identity": {
-            "title": "Identity",
+        "controllers.Bill": {
+            "title": "Bill",
             "type": "object",
             "properties": {
-                "connection": {
-                    "type": "string"
+                "created": {
+                    "type": "string",
+                    "format": "string"
                 },
-                "isSocial": {
-                    "type": "boolean"
+                "discount": {
+                    "type": "number",
+                    "format": "double"
                 },
-                "provider": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "auth0.Members": {
-            "title": "Members",
-            "type": "object",
-            "properties": {
-                "total": {
+                "headquarter_id": {
                     "type": "integer",
                     "format": "int64"
                 },
-                "users": {
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "sales": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/auth0.User"
-                    }
-                }
-            }
-        },
-        "auth0.User": {
-            "title": "User",
-            "type": "object",
-            "properties": {
-                "app_metadata": {
-                    "$ref": "#/definitions/15094.0xc420411fb0.false"
-                },
-                "connection": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "email_verified": {
-                    "type": "boolean"
-                },
-                "identities": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/auth0.Identity"
+                        "$ref": "#/definitions/controllers.Sale"
                     }
                 },
-                "nickname": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "phone_number": {
-                    "type": "string"
-                },
-                "phone_verified": {
-                    "type": "boolean"
-                },
-                "picture": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
+                "updated": {
+                    "type": "string",
+                    "format": "string"
                 },
                 "user_id": {
                     "type": "string"
+                }
+            }
+        },
+        "controllers.Product": {
+            "title": "Product",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
                 },
-                "user_metadata": {
-                    "$ref": "#/definitions/14809.0xc420411ef0.false"
-                },
-                "username": {
+                "name": {
                     "type": "string"
                 },
-                "verify_email": {
-                    "type": "boolean"
+                "price": {
+                    "type": "number",
+                    "format": "double"
+                }
+            }
+        },
+        "controllers.Sale": {
+            "title": "Sale",
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "product": {
+                    "$ref": "#/definitions/controllers.Product"
                 }
             }
         },

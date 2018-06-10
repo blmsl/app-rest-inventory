@@ -23,7 +23,6 @@ func (c *UsersController) URLMapping() {
 // @Title CreateUser
 // @Description Create user.
 // @Accept json
-// @Success 200 {object} auth0.User
 // @router / [post]
 func (c *UsersController) CreateUser() {
 	// Unmarshall request.
@@ -80,7 +79,6 @@ func (c *UsersController) CreateUser() {
 // @Title GetUser
 // @Description Get user.
 // @Param	user_id	path	string	true	"User id."
-// @Success 200 {object} auth0.User
 // @router /:user_id [get]
 func (c *UsersController) GetUser(user_id *string) {
 	// Validate the tenant getting user from the tenant group and not from the
@@ -141,7 +139,6 @@ func (c *UsersController) GetUser(user_id *string) {
 
 // @Title GetUsers
 // @Description Get users.
-// @Success 200 {object} auth0.Members
 // @router / [get]
 func (c *UsersController) GetUsers() {
 	// Validate the tenant getting user from the tenant group and not from the
@@ -191,7 +188,6 @@ func (c *UsersController) GetUsers() {
 // @Description Update user.
 // @Accept json
 // @Param	user_id	path	string	true	"User id."
-// @Success 200 {object} auth0.User
 // @router /:user_id [patch]
 func (c *UsersController) UpdateUser(user_id *string) {
 	// TODO: Validate the tenant getting user from the tenant group.

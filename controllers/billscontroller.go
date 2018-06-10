@@ -44,7 +44,7 @@ func (c *BillsController) URLMapping() {
 // @Title CreateBill
 // @Description Create bill.
 // @Accept json
-// @Success 200 {object} Bill
+// @Success 200  {object} controllers.Bill
 // @router / [post]
 func (c *BillsController) CreateBill() {
 	// Get customer Id from the cookies.
@@ -110,7 +110,7 @@ func (c *BillsController) CreateBill() {
 // @Title GetBill
 // @Description Get bill.
 // @Param	bill_id	path	uint64	true	"Bill id."
-// @Success 200 {object} Bill
+// @Success 200  {object} controllers.Bill
 // @router /:bill_id [get]
 func (c *BillsController) GetBill(bill_id *uint64) {
 	// Get customer Id from the cookies.

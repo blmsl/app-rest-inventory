@@ -43,7 +43,7 @@ paths:
         "200":
           description: ""
           schema:
-            $ref: '#/definitions/.Bill'
+            $ref: '#/definitions/controllers.Bill'
   /bills/{bill_id}:
     get:
       tags:
@@ -61,7 +61,7 @@ paths:
         "200":
           description: ""
           schema:
-            $ref: '#/definitions/.Bill'
+            $ref: '#/definitions/controllers.Bill'
     delete:
       tags:
       - bills
@@ -649,11 +649,6 @@ paths:
       - users
       description: Get users.
       operationId: UsersController.GetUsers
-      responses:
-        "200":
-          description: ""
-          schema:
-            $ref: '#/definitions/auth0.Members'
     post:
       tags:
       - users
@@ -663,11 +658,6 @@ paths:
       - application/json
       produces:
       - application/json
-      responses:
-        "200":
-          description: ""
-          schema:
-            $ref: '#/definitions/auth0.User'
   /users/{user_id}:
     get:
       tags:
@@ -680,11 +670,6 @@ paths:
         description: User id.
         required: true
         type: string
-      responses:
-        "200":
-          description: ""
-          schema:
-            $ref: '#/definitions/auth0.User'
     delete:
       tags:
       - users
@@ -711,17 +696,8 @@ paths:
         description: User id.
         required: true
         type: string
-      responses:
-        "200":
-          description: ""
-          schema:
-            $ref: '#/definitions/auth0.User'
 definitions:
-  .Bill:
-    type: object
   .Time:
-    type: object
-  .false:
     type: object
   .map[string]interface{}:
     type: object
@@ -739,67 +715,55 @@ definitions:
           type: string
       name:
         type: string
-  auth0.Identity:
-    title: Identity
+  controllers.Bill:
+    title: Bill
     type: object
     properties:
-      connection:
+      created:
         type: string
-      isSocial:
-        type: boolean
-      provider:
-        type: string
-      user_id:
-        type: string
-  auth0.Members:
-    title: Members
-    type: object
-    properties:
-      total:
+        format: string
+      discount:
+        type: number
+        format: double
+      headquarter_id:
         type: integer
         format: int64
-      users:
+      id:
+        type: integer
+        format: int64
+      sales:
         type: array
         items:
-          $ref: '#/definitions/auth0.User'
-  auth0.User:
-    title: User
-    type: object
-    properties:
-      app_metadata:
-        $ref: '#/definitions/15094.0xc420411fb0.false'
-      connection:
+          $ref: '#/definitions/controllers.Sale'
+      updated:
         type: string
-      created_at:
-        type: string
-      email:
-        type: string
-      email_verified:
-        type: boolean
-      identities:
-        type: array
-        items:
-          $ref: '#/definitions/auth0.Identity'
-      nickname:
-        type: string
-      password:
-        type: string
-      phone_number:
-        type: string
-      phone_verified:
-        type: boolean
-      picture:
-        type: string
-      updated_at:
-        type: string
+        format: string
       user_id:
         type: string
-      user_metadata:
-        $ref: '#/definitions/14809.0xc420411ef0.false'
-      username:
+  controllers.Product:
+    title: Product
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      name:
         type: string
-      verify_email:
-        type: boolean
+      price:
+        type: number
+        format: double
+  controllers.Sale:
+    title: Sale
+    type: object
+    properties:
+      amount:
+        type: integer
+        format: int64
+      id:
+        type: integer
+        format: int64
+      product:
+        $ref: '#/definitions/controllers.Product'
   models.Catering:
     title: Catering
     type: object
