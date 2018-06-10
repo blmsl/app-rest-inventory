@@ -767,7 +767,7 @@ definitions:
     type: object
     properties:
       app_metadata:
-        $ref: '#/definitions/15094.0xc42040a9c0.false'
+        $ref: '#/definitions/15094.0xc420411fb0.false'
       connection:
         type: string
       created_at:
@@ -795,7 +795,7 @@ definitions:
       user_id:
         type: string
       user_metadata:
-        $ref: '#/definitions/14809.0xc42040a900.false'
+        $ref: '#/definitions/14809.0xc420411ef0.false'
       username:
         type: string
       verify_email:
