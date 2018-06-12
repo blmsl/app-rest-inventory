@@ -11,10 +11,11 @@ var (
 
 type Product struct {
 	Id      uint64    `xorm:"pk autoincr" json:"id"`
-	Name    string    `xorm:"not null unique" json:"name"`
+	Name    string    `xorm:"not null" json:"name"`
 	Brand   string    `json:"brand"`
 	Color   string    `json:"color"`
 	Price   float64   `xorm:"not null" json:"price"`
+	Cost    float64   `xorm:"not null" json:"cost"`
 	Created time.Time `xorm:"created" json:"created"`
 	Updated time.Time `xorm:"updated" json:"updated"`
 }

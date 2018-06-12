@@ -362,8 +362,8 @@ func (c *HeadquartersController) GetProducts(headquarter_id *uint64, name, brand
 		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
 
-	// Get stock price.
-	price, err := dao.StockPriceByHeadquarter(*headquarter_id)
+	// Get stock cost.
+	cost, err := dao.StockCostByHeadquarter(*headquarter_id)
 	if err != nil {
 		logs.Error(err.Error())
 		serveError(c.Controller, http.StatusInternalServerError, err.Error())
@@ -372,7 +372,7 @@ func (c *HeadquartersController) GetProducts(headquarter_id *uint64, name, brand
 	// Serve JSON.
 	response := make(map[string]interface{})
 	response["total"] = len(products)
-	response["price"] = price
+	response["cost"] = cost
 	response["products"] = products
 
 	c.Data["json"] = response

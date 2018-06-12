@@ -87,18 +87,47 @@ func (c *BillsController) CreateBill() {
 		s.ProductId = sale.Product.Id
 		s.Amount = sale.Amount
 
+		// Get the product data.
+		dao := models.NewHeadquarterProductDao(customerId)
+		// Get the product.
+		product, err := dao.Read(request.HeadquarterId, sale.Product.Id)
+		if err != nil {
+			logs.Error(err.Error())
+			errors = append(errors, err)
+			continue
+		}
+
+		// Validate stock.
+		if product.HeadquarterProduct.Amount < sale.Amount {
+			err := fmt.Errorf("Product %d does not have enough stock.", sale.Product.Id)
+			errors = append(errors, err)
+			continue
+		}
+
+		// Decrease the current product existences.
+		product.HeadquarterProduct.Amount -= sale.Amount
+		// Update product.
+		err = dao.Update(request.HeadquarterId, sale.Product.Id, &product.HeadquarterProduct)
+		if err != nil {
+			logs.Error(err.Error())
+			errors = append(errors, err)
+			continue
+		}
+
+		// Insert sale.
 		err = models.Insert(customerId, s)
 		if err != nil {
 			logs.Error(err.Error())
 			errors = append(errors, err)
 		}
 
-		// update sale id.
+		// Update sale id.
 		sale.Id = s.Id
 	}
 
 	if len(errors) > 0 {
 		err := fmt.Errorf("Errors creating sales.")
+		// TODO: Delete the bill and sales.
 		serveError(c.Controller, http.StatusInternalServerError, err.Error())
 	}
 

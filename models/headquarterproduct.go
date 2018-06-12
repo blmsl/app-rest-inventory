@@ -118,8 +118,8 @@ func (d *HeadquarterProductDao) StockAmountByHeadquarter(headquarterId uint64) (
 	return amount, nil
 }
 
-// @Description Get the stock price.
-func (d *HeadquarterProductDao) StockPrice() (float64, error) {
+// @Description Get the stock cost.
+func (d *HeadquarterProductDao) StockCost() (float64, error) {
 	var total float64
 
 	// Build sentence.
@@ -148,15 +148,15 @@ func (d *HeadquarterProductDao) StockPrice() (float64, error) {
 
 	// Golang is faster than PostgreSQL SGBD so here we calc the stock amount.
 	for _, headquarterProductProduct := range headquarterProductProducts {
-		total += float64(headquarterProductProduct.HeadquarterProduct.Amount) * headquarterProductProduct.Product.Price
+		total += float64(headquarterProductProduct.HeadquarterProduct.Amount) * headquarterProductProduct.Product.Cost
 	}
 
 	return total, nil
 }
 
-// @Description Get the stock price for specific headquarter.
+// @Description Get the stock cost for specific headquarter.
 // @Param headquarterId Headquarter Id.
-func (d *HeadquarterProductDao) StockPriceByHeadquarter(headquarterId uint64) (float64, error) {
+func (d *HeadquarterProductDao) StockCostByHeadquarter(headquarterId uint64) (float64, error) {
 	var total float64
 
 	// Build sentence.
@@ -186,7 +186,7 @@ func (d *HeadquarterProductDao) StockPriceByHeadquarter(headquarterId uint64) (f
 
 	// Golang is faster than PostgreSQL SGBD so here we calc the stock amount.
 	for _, headquarterProductProduct := range headquarterProductProducts {
-		total += float64(headquarterProductProduct.HeadquarterProduct.Amount) * headquarterProductProduct.Product.Price
+		total += float64(headquarterProductProduct.HeadquarterProduct.Amount) * headquarterProductProduct.Product.Cost
 	}
 
 	return total, nil

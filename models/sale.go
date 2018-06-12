@@ -155,7 +155,7 @@ func (d *SaleDao) FindByDates(start, end time.Time) ([]*SaleBillProduct, error) 
 	sql.WriteString(start.UTC().Format(stringutil.UTCFormat))
 	sql.WriteString("' AND s.created <= '")
 	sql.WriteString(end.UTC().Format(stringutil.UTCFormat))
-	sql.WriteString("' ORDER BY s.id ASC")
+	sql.WriteString("' ORDER BY b.id DESC")
 
 	// Get engine.
 	engine := GetEngine(d.GetSchema())
@@ -199,7 +199,7 @@ func (d *SaleDao) FindByHeadquarterIDAndDates(headquarterID uint64, start, end t
 	sql.WriteString(start.UTC().Format(stringutil.UTCFormat))
 	sql.WriteString("' AND s.created <= '")
 	sql.WriteString(end.UTC().Format(stringutil.UTCFormat))
-	sql.WriteString("' ORDER BY s.id ASC")
+	sql.WriteString("' ORDER BY b.id DESC")
 
 	// Get engine.
 	engine := GetEngine(d.GetSchema())
