@@ -4,7 +4,6 @@ import (
 	"app-rest-inventory/models"
 	"encoding/json"
 	"fmt"
-	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"net/http"
 	"time"
@@ -12,7 +11,7 @@ import (
 
 // Caterings API
 type CateringsController struct {
-	beego.Controller
+	BaseController
 }
 
 func (c *CateringsController) URLMapping() {
@@ -30,7 +29,7 @@ func (c *CateringsController) CreateCatering() {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Unmarshall request.
@@ -38,14 +37,14 @@ func (c *CateringsController) CreateCatering() {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, catering)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Insert catering.
 	err = models.Insert(customerId, catering)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -64,14 +63,14 @@ func (c *CateringsController) GetCatering(catering_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate catering Id.
 	if catering_id == nil {
 		err := fmt.Errorf("catering_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Prepare query.
@@ -82,7 +81,7 @@ func (c *CateringsController) GetCatering(catering_id *uint64) {
 	err := models.Read(customerId, catering)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -102,7 +101,7 @@ func (c *CateringsController) GetCaterings(from, to time.Time) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Build DAO.
@@ -112,7 +111,7 @@ func (c *CateringsController) GetCaterings(from, to time.Time) {
 	caterings, err := dao.FindByDates(from, to)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -136,14 +135,14 @@ func (c *CateringsController) UpdateCatering(catering_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate catering Id.
 	if catering_id == nil {
 		err := fmt.Errorf("catering_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Unmarshall request.
@@ -151,7 +150,7 @@ func (c *CateringsController) UpdateCatering(catering_id *uint64) {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, catering)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 	catering.Id = *catering_id
 
@@ -159,7 +158,7 @@ func (c *CateringsController) UpdateCatering(catering_id *uint64) {
 	err = models.Update(customerId, *catering_id, catering)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -177,14 +176,14 @@ func (c *ProductsController) DeleteCatering(catering_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate catering Id.
 	if catering_id == nil {
 		err := fmt.Errorf("catering_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Prepare query.
@@ -195,6 +194,6 @@ func (c *ProductsController) DeleteCatering(catering_id *uint64) {
 	err := models.Delete(customerId, *catering_id, catering)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 }

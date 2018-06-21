@@ -4,7 +4,6 @@ import (
 	"app-rest-inventory/models"
 	"encoding/json"
 	"fmt"
-	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"net/http"
 	"time"
@@ -34,7 +33,7 @@ type Product struct {
 
 // Bills API
 type BillsController struct {
-	beego.Controller
+	BaseController
 }
 
 func (c *BillsController) URLMapping() {
@@ -52,7 +51,7 @@ func (c *BillsController) CreateBill() {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Unmarshall request.
@@ -60,7 +59,7 @@ func (c *BillsController) CreateBill() {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, request)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Insert bill.
@@ -71,7 +70,7 @@ func (c *BillsController) CreateBill() {
 	err = models.Insert(customerId, b)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Update request fields.
@@ -128,7 +127,7 @@ func (c *BillsController) CreateBill() {
 	if len(errors) > 0 {
 		err := fmt.Errorf("Errors creating sales.")
 		// TODO: Delete the bill and sales.
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -147,14 +146,14 @@ func (c *BillsController) GetBill(bill_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate sale Id.
 	if bill_id == nil {
 		err := fmt.Errorf("bill_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Prepare query.
@@ -165,7 +164,7 @@ func (c *BillsController) GetBill(bill_id *uint64) {
 	err := models.Read(customerId, bill)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Get the sales.
@@ -173,7 +172,7 @@ func (c *BillsController) GetBill(bill_id *uint64) {
 	sales, err := dao.FindByBill(*bill_id)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Build response.
@@ -215,7 +214,7 @@ func (c *BillsController) GetBills(from, to time.Time) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Build DAO.
@@ -225,7 +224,7 @@ func (c *BillsController) GetBills(from, to time.Time) {
 	sales, err := dao.FindByDates(from, to)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Group by bill.
@@ -291,14 +290,14 @@ func (c *BillsController) UpdateDiscount(bill_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate sale Id.
 	if bill_id == nil {
 		err := fmt.Errorf("bill_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Unmarshall request.
@@ -306,7 +305,7 @@ func (c *BillsController) UpdateDiscount(bill_id *uint64) {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, request)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Update the bill.
@@ -316,7 +315,7 @@ func (c *BillsController) UpdateDiscount(bill_id *uint64) {
 	err = models.Update(customerId, *bill_id, b)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -334,7 +333,7 @@ func (c *BillsController) UpdateDiscount(bill_id *uint64) {
 // @Param sale_id path uint64 true "Sale id."
 // @router /:bill_id/sales/:sale_id [patch]
 func (c *BillsController) AddSale(bill_id, sale_id *uint64) {
-	serveError(c.Controller, http.StatusNotImplemented, "Not implemented yet.")
+	c.serveError(http.StatusNotImplemented, "Not implemented yet.")
 }
 
 // @Title RemoveSale
@@ -343,7 +342,7 @@ func (c *BillsController) AddSale(bill_id, sale_id *uint64) {
 // @Param sale_id path uint64 true "Sale id."
 // @router /:bill_id/sales/:sale_id [delete]
 func (c *BillsController) RemoveSale(bill_id, sale_id *uint64) {
-	serveError(c.Controller, http.StatusNotImplemented, "Not implemented yet.")
+	c.serveError(http.StatusNotImplemented, "Not implemented yet.")
 }
 
 // @Title DeleteBill
@@ -356,14 +355,14 @@ func (c *BillsController) DeleteBill(bill_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate bill Id.
 	if bill_id == nil {
 		err := fmt.Errorf("bill_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Prepare query.
@@ -374,7 +373,7 @@ func (c *BillsController) DeleteBill(bill_id *uint64) {
 	err := models.Delete(customerId, *bill_id, b)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Build DAO.
@@ -384,7 +383,7 @@ func (c *BillsController) DeleteBill(bill_id *uint64) {
 	err = dao.DeleteByBillId(*bill_id)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 }

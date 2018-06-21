@@ -4,14 +4,13 @@ import (
 	"app-rest-inventory/models"
 	"encoding/json"
 	"fmt"
-	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"net/http"
 )
 
 // Products API
 type ProductsController struct {
-	beego.Controller
+	BaseController
 }
 
 func (c *ProductsController) URLMapping() {
@@ -30,7 +29,7 @@ func (c *ProductsController) CreateProduct() {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Unmarshall request.
@@ -38,14 +37,14 @@ func (c *ProductsController) CreateProduct() {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, product)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Insert product.
 	err = models.Insert(customerId, product)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -64,14 +63,14 @@ func (c *ProductsController) GetProduct(product_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate product Id.
 	if product_id == nil {
 		err := fmt.Errorf("product_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Prepare query.
@@ -82,7 +81,7 @@ func (c *ProductsController) GetProduct(product_id *uint64) {
 	err := models.Read(customerId, product)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -103,7 +102,7 @@ func (c *ProductsController) GetProducts(name, brand, color string) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Build DAO.
@@ -113,7 +112,7 @@ func (c *ProductsController) GetProducts(name, brand, color string) {
 	products, err := dao.FindByNameOrBrandOrColor(name, brand, color)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -137,14 +136,14 @@ func (c *ProductsController) UpdateProduct(product_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate product Id.
 	if product_id == nil {
 		err := fmt.Errorf("product_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Unmarshall request.
@@ -152,7 +151,7 @@ func (c *ProductsController) UpdateProduct(product_id *uint64) {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, product)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 	product.Id = *product_id
 
@@ -160,7 +159,7 @@ func (c *ProductsController) UpdateProduct(product_id *uint64) {
 	err = models.Update(customerId, *product_id, product)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -178,14 +177,14 @@ func (c *ProductsController) DeleteProduct(product_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate product Id.
 	if product_id == nil {
 		err := fmt.Errorf("product_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Prepare query.
@@ -196,7 +195,7 @@ func (c *ProductsController) DeleteProduct(product_id *uint64) {
 	err := models.Delete(customerId, *product_id, product)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 }
 
@@ -210,7 +209,7 @@ func (c *ProductsController) GetBrands() {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Build DAO.
@@ -220,7 +219,7 @@ func (c *ProductsController) GetBrands() {
 	brands, err := dao.GetBrands()
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.

@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"net/http"
 )
@@ -19,7 +18,7 @@ const (
 
 // Customers API
 type CustomersController struct {
-	beego.Controller
+	BaseController
 }
 
 func (c *CustomersController) URLMapping() {
@@ -38,14 +37,14 @@ func (c *CustomersController) CreateCustomer() {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, customer)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Create customer.
 	customer, err = auth0.Auth.CreateGroup(customer.Name, customer.Description)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Create the customer DB.
@@ -103,13 +102,13 @@ func (c *CustomersController) GetCustomer() {
 	if len(customerID) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	customer, err := auth0.Auth.GetGroup(customerID)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.

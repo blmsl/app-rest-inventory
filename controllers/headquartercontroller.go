@@ -4,7 +4,6 @@ import (
 	"app-rest-inventory/models"
 	"encoding/json"
 	"fmt"
-	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"net/http"
 	"time"
@@ -12,7 +11,7 @@ import (
 
 // Headquarters API
 type HeadquartersController struct {
-	beego.Controller
+	BaseController
 }
 
 func (c *HeadquartersController) URLMapping() {
@@ -31,7 +30,7 @@ func (c *HeadquartersController) CreateHeadquarter() {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Unmarshall request.
@@ -39,14 +38,14 @@ func (c *HeadquartersController) CreateHeadquarter() {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, headquarter)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Insert headquarter.
 	err = models.Insert(customerId, headquarter)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -65,14 +64,14 @@ func (c *HeadquartersController) GetHeadquarter(headquarter_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate headquarter Id.
 	if headquarter_id == nil {
 		err := fmt.Errorf("headquarter_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Prepare query.
@@ -83,7 +82,7 @@ func (c *HeadquartersController) GetHeadquarter(headquarter_id *uint64) {
 	err := models.Read(customerId, headquarter)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -101,14 +100,14 @@ func (c *HeadquartersController) GetHeadquarters() {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	headquarters := make([]*models.Headquarter, 0)
 	err := models.ReadAll(customerId, &headquarters)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -132,14 +131,14 @@ func (c *HeadquartersController) UpdateHeadquarter(headquarter_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate headquarter Id.
 	if headquarter_id == nil {
 		err := fmt.Errorf("headquarter_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Unmarshall request.
@@ -147,7 +146,7 @@ func (c *HeadquartersController) UpdateHeadquarter(headquarter_id *uint64) {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, headquarter)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 	headquarter.Id = *headquarter_id
 
@@ -155,7 +154,7 @@ func (c *HeadquartersController) UpdateHeadquarter(headquarter_id *uint64) {
 	err = models.Update(customerId, *headquarter_id, headquarter)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -173,14 +172,14 @@ func (c *HeadquartersController) DeleteHeadquarter(headquarter_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate headquarter Id.
 	if headquarter_id == nil {
 		err := fmt.Errorf("headquarter_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Prepare query.
@@ -191,7 +190,7 @@ func (c *HeadquartersController) DeleteHeadquarter(headquarter_id *uint64) {
 	err := models.Delete(customerId, *headquarter_id, headquarter)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 }
 
@@ -207,14 +206,14 @@ func (c *HeadquartersController) AddProduct(headquarter_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate headquarter Id.
 	if headquarter_id == nil {
 		err := fmt.Errorf("headquarter can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Unmarshall request.
@@ -222,7 +221,7 @@ func (c *HeadquartersController) AddProduct(headquarter_id *uint64) {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, headquarterProduct)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Add product.
@@ -231,7 +230,7 @@ func (c *HeadquartersController) AddProduct(headquarter_id *uint64) {
 	err = models.Insert(customerId, headquarterProduct)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -252,14 +251,14 @@ func (c *HeadquartersController) UpdateProduct(headquarter_id, product_id *uint6
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate headquarter Id.
 	if headquarter_id == nil {
 		err := fmt.Errorf("headquarter can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Unmarshall request.
@@ -267,7 +266,7 @@ func (c *HeadquartersController) UpdateProduct(headquarter_id, product_id *uint6
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, headquarterProduct)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Build DAO.
@@ -277,7 +276,7 @@ func (c *HeadquartersController) UpdateProduct(headquarter_id, product_id *uint6
 	err = dao.Update(*headquarter_id, *product_id, headquarterProduct)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -297,20 +296,20 @@ func (c *HeadquartersController) GetProduct(headquarter_id, product_id *uint64) 
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 	// Validate headquarter Id.
 	if headquarter_id == nil {
 		err := fmt.Errorf("headquarter can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Validate product Id.
 	if product_id == nil {
 		err := fmt.Errorf("product_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Build DAO.
@@ -320,7 +319,7 @@ func (c *HeadquartersController) GetProduct(headquarter_id, product_id *uint64) 
 	product, err := dao.Read(*headquarter_id, *product_id)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -342,14 +341,14 @@ func (c *HeadquartersController) GetProducts(headquarter_id *uint64, name, brand
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate headquarter Id.
 	if headquarter_id == nil {
 		err := fmt.Errorf("headquarter_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Build DAO.
@@ -359,14 +358,14 @@ func (c *HeadquartersController) GetProducts(headquarter_id *uint64, name, brand
 	products, err := dao.FindByHeadquarterOrNameOrBrandOrColor(*headquarter_id, name, brand, color)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Get stock cost.
 	cost, err := dao.StockCostByHeadquarter(*headquarter_id)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -389,14 +388,14 @@ func (c *HeadquartersController) RemoveProducts(headquarter_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate headquarter Id.
 	if headquarter_id == nil {
 		err := fmt.Errorf("headquarter can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Unmarshall request.
@@ -404,7 +403,7 @@ func (c *HeadquartersController) RemoveProducts(headquarter_id *uint64) {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, productsId)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Build dao.
@@ -423,7 +422,7 @@ func (c *HeadquartersController) RemoveProducts(headquarter_id *uint64) {
 
 	if len(errors) > 0 {
 		err := fmt.Errorf("Errors removing products.")
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 }
 
@@ -440,14 +439,14 @@ func (c *HeadquartersController) GetBills(headquarter_id *uint64, from, to time.
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate headquarter Id.
 	if headquarter_id == nil {
 		err := fmt.Errorf("headquarter_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Build DAO.
@@ -457,7 +456,7 @@ func (c *HeadquartersController) GetBills(headquarter_id *uint64, from, to time.
 	sales, err := dao.FindByHeadquarterIDAndDates(*headquarter_id, from, to)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Group by bill.

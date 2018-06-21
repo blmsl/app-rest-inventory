@@ -4,14 +4,13 @@ import (
 	"app-rest-inventory/models"
 	"encoding/json"
 	"fmt"
-	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"net/http"
 )
 
 // Providers API
 type ProvidersController struct {
-	beego.Controller
+	BaseController
 }
 
 func (c *ProvidersController) URLMapping() {
@@ -30,7 +29,7 @@ func (c *ProvidersController) CreateProvider() {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Unmarshall request.
@@ -38,14 +37,14 @@ func (c *ProvidersController) CreateProvider() {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, provider)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Insert provider.
 	err = models.Insert(customerId, provider)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -64,14 +63,14 @@ func (c *ProvidersController) GetProvider(provider_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate provider Id.
 	if provider_id == nil {
 		err := fmt.Errorf("provider_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Prepare query.
@@ -82,7 +81,7 @@ func (c *ProvidersController) GetProvider(provider_id *uint64) {
 	err := models.Read(customerId, provider)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -100,14 +99,14 @@ func (c *ProvidersController) GetProviders() {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	providers := make([]*models.Provider, 0)
 	err := models.ReadAll(customerId, providers)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -131,14 +130,14 @@ func (c *ProvidersController) UpdateProvider(provider_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate provider Id.
 	if provider_id == nil {
 		err := fmt.Errorf("provider_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Unmarshall request.
@@ -146,7 +145,7 @@ func (c *ProvidersController) UpdateProvider(provider_id *uint64) {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, provider)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 	provider.Id = *provider_id
 
@@ -154,7 +153,7 @@ func (c *ProvidersController) UpdateProvider(provider_id *uint64) {
 	err = models.Update(customerId, *provider_id, provider)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Serve JSON.
@@ -172,14 +171,14 @@ func (c *ProvidersController) DeleteProvider(provider_id *uint64) {
 	if len(customerId) == 0 {
 		err := fmt.Errorf("customer_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusUnauthorized, err.Error())
+		c.serveError(http.StatusUnauthorized, err.Error())
 	}
 
 	// Validate provider Id.
 	if provider_id == nil {
 		err := fmt.Errorf("provider_id can not be empty.")
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusBadRequest, err.Error())
+		c.serveError(http.StatusBadRequest, err.Error())
 	}
 
 	// Prepare query.
@@ -190,6 +189,6 @@ func (c *ProvidersController) DeleteProvider(provider_id *uint64) {
 	err := models.Delete(customerId, *provider_id, provider)
 	if err != nil {
 		logs.Error(err.Error())
-		serveError(c.Controller, http.StatusInternalServerError, err.Error())
+		c.serveError(http.StatusInternalServerError, err.Error())
 	}
 }
